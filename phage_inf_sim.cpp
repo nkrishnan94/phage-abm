@@ -15,15 +15,15 @@
 
 
 //define key parameters
-int tao = 50; // lysis time in simulation steps
-int beta = 30; //number of phage released with lysis
+int tao = 15; // lysis time in simulation steps
+int beta = 40; //number of phage released with lysis
 const int N_demes = 300; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
 const int K_bac = 100; // deme size for bacteria
 const int K_vir = 3000; // deme size for phage - >beta*K_bac
 float M = .15; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
-unsigned int N_gen = 10000; // Run time in generations 
+unsigned int N_gen = 9000; // Run time in generations
 
 
 //////-------HELPER FUNCTIONS ------
@@ -48,13 +48,13 @@ float calcHet(long arr [N_demes][K_vir]){
 		}
 		if((deme_pop_a1+deme_pop_a2)>0){
 			cnt+=1;
-			H+=(2*deme_pop_a1*deme_pop_a2)/ (pow(deme_pop_a1+deme_pop_a2,2));
+			H+=float(2*deme_pop_a1*deme_pop_a2)/ float(pow(deme_pop_a1+deme_pop_a2,2));
 		}
 
 
 	}
 
-	return H/cnt;
+	return float(H)/float(cnt);
 
 
 }
@@ -142,6 +142,7 @@ int main (int argc, char * argv[]){
 
     //main loop
     for (unsigned int t = 0; t < N_gen; t++){
+        
 
     	//migration
 	    uniform_int_distribution<int> distribution_Dm(0, N_demes);
@@ -250,10 +251,12 @@ int main (int argc, char * argv[]){
 
 					}
 					int b_cnt=0;
-					while((cnt<K_vir)||(b_cnt<beta)){
-						V_deme[m][cnt] = burst_phage;
-						cnt+=1;
-						b_cnt+=1;
+					while((b_cnt<beta)){
+
+                        V_deme[m][cnt] = burst_phage;
+                        cnt+=1;
+                        b_cnt+=1;
+                        
 
 					}
 
@@ -281,8 +284,10 @@ int main (int argc, char * argv[]){
 
 		///segmentation fault here!!!
 		int shift = int(tot_pop/K_vir - N_demes/2);
-		//cout<<shift<<endl;
+
 		if (shift>0){
+            //cout<<shift<<endl;
+            
 			for(int s =shift; s<N_demes;s++){
 				for(int p=0;p<K_vir;p++){
 					V_deme[s-shift][p]=V_deme[s][p];
@@ -305,6 +310,7 @@ int main (int argc, char * argv[]){
 		}
 
 		if(t%record_time ==0){
+            cout<< t<<" "<< shift<<endl;
 			pop_hist.push_back(shiftDemes+tot_pop/K_vir);
 			het_hist.push_back(calcHet(V_deme));
 		}
