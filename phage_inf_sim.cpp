@@ -15,15 +15,16 @@
 
 
 //define key parameters
-int tao = 15; // lysis time in simulation steps
-int beta = 40; //number of phage released with lysis
-const int N_demes = 300; // number of demes in comiving frame
+
+const int N_demes = 200; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
 const int K_bac = 100; // deme size for bacteria
 const int K_vir = 3000; // deme size for phage - >beta*K_bac
-float M = .15; // Migration rate
+int tao = 50; // lysis time in simulation steps
+int beta = 100; //number of phage released with lysis
+float M = .5; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
-unsigned int N_gen = 9000; // Run time in generations
+unsigned int N_gen = 50000; // Run time in generations
 
 
 //////-------HELPER FUNCTIONS ------
@@ -121,7 +122,7 @@ int main (int argc, char * argv[]){
 	long B_deme[N_demes][K_bac] = {{0}};// Keep track of Bacteria -> Healthy, infected, lysed
 	long V_deme[N_demes][K_vir] = {{0}};// //Keep track of N_spec species of phage
     double shiftDemes = 0; // Number of demes shifted
-    int record_time=1000;
+    int record_time=10000;
     vector <double> pop_hist;
     vector <double> het_hist;
     ///---setup iinitial population
@@ -163,11 +164,12 @@ int main (int argc, char * argv[]){
 					double r_dir = distribution_d(e);
 					int mig_deme;
 					if (r_dir<.5){
-						mig_deme = r_dir -1;
+						mig_deme = r_deme -1;
 					} else{
-						mig_deme = r_dir +1;
+						mig_deme = r_deme +1;
 
 					}
+
 
 					int found_empty =0;
 					int cnt=0;
@@ -232,31 +234,28 @@ int main (int argc, char * argv[]){
 
 		//lysis
 		for(int m=0; m< N_demes;m++){
-			for(int n=0; n< K_bac;n++){
-				if (B_deme[m][n]>0){
-					B_deme[m][n]+=1;
+			for(int nb=0; nb< K_bac;nb++){
+				if (B_deme[m][nb]>0){
+					B_deme[m][nb]+=1;
 				}
-				if ((B_deme[m][n]% 100)==tao){
+				if ((B_deme[m][nb]% 100)==tao){
 					int found_empty=0;
-					int cnt;
-					int burst_phage=int((B_deme[m][n]-tao)/100);
-					while(found_empty==0){
-						if(V_deme[m][cnt]==0){
-							found_empty=1;
-							B_deme[m][n]=-1;
+					int cnt=0;
 
-						} else{
-							cnt+=1;
+					int burst_phage=int((B_deme[m][nb]-tao)/100);
+					B_deme[m][nb]=-1;
+					//cout<<m<<endl;
+					for(int nv=0;nv<K_vir;nv++){
+						if (V_deme[m][nv]==0){
+							if (cnt<beta){
+
+								V_deme[m][nv] = burst_phage;
+								cnt+=1;
+
+							}
+
 						}
 
-					}
-					int b_cnt=0;
-					while((b_cnt<beta)){
-
-                        V_deme[m][cnt] = burst_phage;
-                        cnt+=1;
-                        b_cnt+=1;
-                        
 
 					}
 
@@ -283,7 +282,7 @@ int main (int argc, char * argv[]){
 		//cout <<tot_pop<<endl;
 
 		///segmentation fault here!!!
-		int shift = int(tot_pop/K_vir - N_demes/2);
+		int shift = int(tot_pop/K_vir - N_demes/2)+1;
 
 		if (shift>0){
             //cout<<shift<<endl;
@@ -311,11 +310,12 @@ int main (int argc, char * argv[]){
 
 		if(t%record_time ==0){
             cout<< t<<" "<< shift<<endl;
-			pop_hist.push_back(shiftDemes+tot_pop/K_vir);
+			pop_hist.push_back(shiftDemes*K_vir+tot_pop);
 			het_hist.push_back(calcHet(V_deme));
 		}
 
 	}
+	
 	//////-----write data files-------------
     for (int m = 0; m < N_demes; m++){
     
@@ -350,12 +350,12 @@ int main (int argc, char * argv[]){
         		B_lys+=1;
         	}	
     	}
-    	fprofb << B_health <<" " <<B_inf<<" " <<B_lys <<endl;
+    	fprofb <<m<<" "<< B_health <<" " <<B_inf<<" " <<B_lys <<endl;
 
 
 
     }
-
+    std::cout <<"hi"<<std::endl;
     for(int t=0; t <N_gen/record_time;t++){
     	fpop <<t*record_time<< " " << pop_hist[t] <<endl;
     	fhet <<t*record_time<< " " << het_hist[t] <<endl;
@@ -364,7 +364,7 @@ int main (int argc, char * argv[]){
 
 
     ///final out put
-    cout << "Finished!" << "\n";
+    
     time_t time_end;
     double run_time = difftime(time(&time_start), time(&time_end));
     flog << "Number of generations, Migration rate, Number of demes, Start time, Elapsed run time (secs_" << endl;
@@ -372,12 +372,11 @@ int main (int argc, char * argv[]){
 
     cout << "Finished in " << run_time << " seconds \n";
 
-
+    
 
 
     return 0;
 }
-
 
 
 
