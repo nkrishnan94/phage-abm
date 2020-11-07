@@ -16,15 +16,15 @@
 
 //define key parameters
 
-const int N_demes = 200; // number of demes in comiving frame
+const int N_demes = 300; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=400; // deme size for bacteria
+const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
 int tao = 50000; // lysis time in simulation steps
-int beta = 50; //number of phage released with lysis
+int beta = 45; //number of phage released with lysis
 float M = 1; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
-unsigned int N_gen = 1*pow(10,7); // Run time in generations
+unsigned int N_gen = 1*pow(10,6); // Run time in generations
 long tao_count = pow(10,int(log10(tao) + 2));
 //double B_frac = .4;
 
@@ -140,170 +140,196 @@ int main (int argc, char * argv[]){
 
     //main loop
     for (unsigned int t = 0; t < N_gen; t++){
+        if (total_phage>1){
+            
+
+            //migration
+            uniform_int_distribution<int> distribution_ind(0, total_phage-1);
+            int phage_ind = distribution_ind(e)+1;
+            //uniform_int_distribution<int> distribution_Im(0, K_vir);
+            //int r_ind = distribution_Im(e);
+            int phage_cnt=0;
+            int phage_found=0;
+            int r_deme;
+            int r_phage;
+            for(int m =0;m<N_demes;m++){
+                if (phage_found==0){
+
+                    phage_cnt+=V_deme[m][0];
+                    if (phage_cnt+1>phage_ind){
+                        r_deme=m;
+                        r_phage = 0;
+                        phage_found=1;
+
+                    }
+                }
+                if (phage_found==0){
+                    phage_cnt+=V_deme[m][1];
+
+                    if (phage_cnt+1>phage_ind){
+                        r_deme=m;
+                        r_phage = 1;
+                        phage_found=1;
+
+                    }
+
+                }
+                
+
+            }
+
+            //cout<< r_phage<<endl;
+            //cout<<total_phage<<endl;
+            //cout <<phage_ind<<endl;
+            //cout <<phage_cnt<<endl;
+            //cout<<phage_found<<endl;
+            //cout <<r_deme<<endl;
+            //int r_phage = V_deme[r_deme][r_ind];
+            int mig_deme;
+            
+            uniform_real_distribution<double> distribution_d(0.0, 1.0);
+            double p_mig = distribution_d(e);
+            //cout<<r_deme<<endl;
+
+
+            if(r_deme>0){
+                if(p_mig<M){
+                    double r_dir = distribution_d(e);
+                    if (r_dir<.5){
+                        mig_deme = r_deme -1;
+                    } else{
+                        mig_deme = r_deme +1;
+
+                    }
+                    if(V_deme[r_deme][r_phage]<1){
+                        cout<<"migration error"<<endl;
+                        
+                    }
+                    V_deme[r_deme][r_phage]-=1;
+                    V_deme[mig_deme][r_phage]+=1;
+
+
+                }
+            }
+
+            if(r_deme==0){
+                if(V_deme[r_deme][r_phage]<1){
+                    cout<<"migration error"<<endl;
+                    cout<< V_deme[r_deme][0]<<" "<<V_deme[r_deme][1]<<endl;
+                    cout<< r_deme<< " "<<r_phage<<endl;
+                    cout<<phage_ind<<" "<<phage_cnt<<endl;
+                    
+                }
+                if(p_mig<M/2){
+
+                    mig_deme=1;
+
+                    V_deme[0][r_phage]-=1;
+                    V_deme[1][r_phage]+=1;
+
+
+                }
+
+
+
+            }
+            
+
+            //infection
+            uniform_int_distribution<int> distribution_indi(0, total_phage-1);
+            int phage_indi = distribution_indi(e) +1;
+            int phage_cnti=0;
+            int phage_foundi=0;
+            int r_demei;
+            int r_phagei;
+            for(int m =0;m<N_demes;m++){
+                if (phage_foundi==0){
+
+                    phage_cnti+=V_deme[m][0];
+                    if (phage_cnti+1>phage_indi){
+                        r_demei=m;
+                        r_phagei = 0;
+                        phage_foundi=1;
+
+                    }
+                }
+                if (phage_foundi==0){
+                    phage_cnti+=V_deme[m][1];
+
+                    if (phage_cnti+1>phage_indi){
+                        r_demei=m;
+                        r_phagei = 1;
+                        phage_foundi=1;
+
+                    }
+
+                }
+            }
+            //cout<<r_phagei<<endl;
+
+
+            int B_found=0;
+            int bac_ind;
+            for (int n=0;n<K_bac;n++){
+                if (B_found==0){
+                    if(B_deme[r_deme][n]==0){
+
+                        B_found=1;
+                        bac_ind=n;
+                    }
+
+
+                }
+
+            }
+
+            if (B_found==1){
+                B_deme[r_demei][bac_ind] = (1+r_phagei)*tao_count;
+                if(V_deme[r_demei][r_phagei]<1){
+                    cout<<"infection error"<<endl;
+                    cout<< V_deme[r_demei][0]<<" "<<V_deme[r_demei][1]<<endl;
+                    cout<< r_demei<< " "<<r_phagei<<endl;
+                    cout<<phage_indi<<" "<< total_phage<<" "<<phage_cnti<<endl;
+                    
+                    
+                }
+                    
+                V_deme[r_demei][r_phagei]-=1;
+
+            }
+        }
+
+
+
+
+
+
+
+            //lysis
+        for(int m=0; m< N_demes;m++){
+            for(int nb=0; nb< K_bac;nb++){
+                if (B_deme[m][nb]>0){
+                    B_deme[m][nb]+=1;
+                }
+                if ((B_deme[m][nb]% tao_count)==tao){
+                    //cout<<B_deme[m][nb]<<endl;
+                    
+                    //int found_empty=0;
+                    int cnt=0;
+
+                    int burst_phage=(B_deme[m][nb]-tao)/tao_count-1;
+                    //cout << burst_phage<<endl;
+                    B_deme[m][nb]=-1;
+                    //cout<<m<<endl;
+                    V_deme[m][burst_phage]+=beta;
+                    //total_phage+=beta;
+
+                }
+
+            }
+
+        }
         
-
-    	//migration
-	    uniform_int_distribution<int> distribution_ind(0, total_phage);
-		int phage_ind = distribution_ind(e);
-		//uniform_int_distribution<int> distribution_Im(0, K_vir);
-		//int r_ind = distribution_Im(e);
-		int phage_cnt=0;
-		int phage_found=0;
-		int r_deme;
-		int r_phage;
-		for(int m =0;m<N_demes;m++){
-			if (phage_found==0){
-
-				phage_cnt+=V_deme[m][0];
-				if (phage_cnt>phage_ind){
-					r_deme=m;
-					r_phage = 0;
-					phage_found=1;
-
-				}
-			}
-			if (phage_found==0){
-				phage_cnt+=V_deme[m][1];
-
-				if (phage_cnt>phage_ind){
-					r_deme=m;
-					r_phage = 1;
-					phage_found=1;
-
-				}
-
-			}
-
-		}
-		//cout<< r_phage<<endl;
-		//cout<<total_phage<<endl;
-		//cout <<phage_ind<<endl;
-		//cout <<phage_cnt<<endl;
-		//cout<<phage_found<<endl;
-		//cout <<r_deme<<endl;
-		//int r_phage = V_deme[r_deme][r_ind];
-		int mig_deme;
-		
-		uniform_real_distribution<double> distribution_d(0.0, 1.0);
-		double p_mig = distribution_d(e);
-		//cout<<r_deme<<endl;
-
-
-		if(r_deme>0){
-			if(p_mig<M){
-				double r_dir = distribution_d(e);
-				if (r_dir<.5){
-					mig_deme = r_deme -1;
-				} else{
-					mig_deme = r_deme +1;
-
-				}
-				V_deme[r_deme][r_phage]-=1;
-				V_deme[mig_deme][r_phage]+=1;
-
-
-			}
-		}
-
-		if(r_deme==0){
-			if(p_mig<M/2){
-
-				mig_deme=1;
-
-				V_deme[0][r_phage]-=1;
-				V_deme[1][r_phage]+=1;
-
-
-			}
-
-		}
-		
-
-    	//infection
-	    uniform_int_distribution<int> distribution_indi(0, total_phage);
-		int phage_indi = distribution_indi(e);
-		int phage_cnti=0;
-		int phage_foundi=0;
-		int r_demei;
-		int r_phagei;
-		for(int m =0;m<N_demes;m++){
-			if (phage_foundi==0){
-
-				phage_cnti+=V_deme[m][0];
-				if (phage_cnti>phage_indi){
-					r_demei=m;
-					r_phagei = 0;
-					phage_foundi=1;
-
-				}
-			}
-			if (phage_foundi==0){
-				phage_cnti+=V_deme[m][1];
-
-				if (phage_cnti>phage_indi){
-					r_demei=m;
-					r_phagei = 1;
-					phage_foundi=1;
-
-				}
-
-			}
-		}
-		//cout<<r_phagei<<endl;
-
-
-		int B_found=0;
-		int bac_ind;
-		for (int n=0;n<K_bac;n++){
-			if (B_found==0){
-				if(B_deme[r_deme][n]==0){
-
-					B_found=1;
-					bac_ind=n;
-				}
-
-
-			}
-
-		}
-
-		if (B_found==1){
-			B_deme[r_demei][bac_ind] = (1+r_phagei)*tao_count;
-			V_deme[r_demei][r_phagei]-=1; 
-
-		}
-
-
-
-
-
-
-
-		//lysis
-		for(int m=0; m< N_demes;m++){
-			for(int nb=0; nb< K_bac;nb++){
-				if (B_deme[m][nb]>0){
-					B_deme[m][nb]+=1;
-				}
-				if ((B_deme[m][nb]% tao_count)==tao){
-					//cout<<B_deme[m][nb]<<endl;
-					
-					//int found_empty=0;
-					int cnt=0;
-
-					int burst_phage=(B_deme[m][nb]-tao)/tao_count-1;
-					//cout << burst_phage<<endl;
-					B_deme[m][nb]=-1;
-					//cout<<m<<endl;
-					V_deme[m][burst_phage]+=beta;
-					total_phage+=beta;
-
-				}
-
-			}
-
-		}
-
 
 		//shift populatoion
 		int tot_pop=0;
@@ -324,9 +350,12 @@ int main (int argc, char * argv[]){
 		//cout <<tot_pop<<endl;
 
 		///segmentation fault here!!!
+        int shift = 0;
+        //if (last_deme >= N_demes*(3/4)){
+        //    shift = 1;
+            
+        //};
 
-
-		int shift = int(last_deme-10 - N_demes/2);
 		//cout<<last_deme<<endl;
 		int shiftpop=0;
 
@@ -360,6 +389,21 @@ int main (int argc, char * argv[]){
 			}
 			
 		}
+        //total_phage-=shiftpop;
+
+        total_phage=0;
+        for(int m=0;m<N_demes;m++){
+            //total_phage+=V_deme[m][0]+V_deme[m][1];
+            if(( V_deme[m][0]<0 )|| (V_deme[m][1]<0)){
+                cout <<"deme population negative, timestep " <<t <<endl;
+                
+                cout <<V_deme[m][0]<<" " << V_deme[m][1]<<endl;
+                exit(EXIT_FAILURE);
+            }
+            total_phage+=V_deme[m][0]+V_deme[m][1];
+            
+        }
+        cout<<total_phage<<endl;
 
 		if(t%record_time ==0){
             cout<<"timestep: "<< t<<" demeshift: "<< shift<<endl;

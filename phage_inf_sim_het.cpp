@@ -24,7 +24,7 @@ int tao = 50000; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
 float M = 1; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
-unsigned int N_gen = 1*pow(10,7); // Run time in generations
+unsigned int N_gen = 1*pow(10,6); // Run time in generations
 long tao_count = pow(10,int(log10(tao) + 2));
 //double B_frac = .4;
 
@@ -125,6 +125,7 @@ int main (int argc, char * argv[]){
     int total_bac_no_inf=0;
     int total_bac_inf= K_bac*int(N_demes/2);
     float het =.5;
+    //int t=0;
 
     ///---setup iinitial population
     for(int m= 0; m<int(N_demes/2);m++){
@@ -140,8 +141,8 @@ int main (int argc, char * argv[]){
 
 
     //main loop
-    while(het>.05){
-    //for (unsigned int t = 0; t < N_gen; t++){
+    //while(het>.05){
+    for (unsigned int t = 0; t < N_gen; t++){
         
 
     	//migration
@@ -305,6 +306,7 @@ int main (int argc, char * argv[]){
 			}
 
 		}
+        //t+=1;
 
 
 		//shift populatoion
@@ -364,10 +366,10 @@ int main (int argc, char * argv[]){
 		}
 
 		if(t%record_time ==0){
-            het =calcHet(V_deme);
+            //het =calcHet(V_deme);
             cout<<"timestep: "<< t<<" demeshift: "<< shift<<endl;
 			pop_hist.push_back(shiftpop+tot_pop);
-			het_hist.push_back(het);
+			het_hist.push_back(calcHet(V_deme));
 		}
 
 	}
@@ -410,8 +412,8 @@ int main (int argc, char * argv[]){
     
     time_t time_end;
     double run_time = difftime(time(&time_start), time(&time_end));
-    flog << "Number of generations, Migration rate, Number of demes, Start time, Elapsed run time (secs_" << endl;
-    flog << N_gen << " "  << M << ", " << N_demes << time_start<< run_time <<endl;
+    flog << "Number of generations, Migration rate, Number of demes, Time steps, Start time, Elapsed run time secs_" << endl;
+    flog << N_gen << " "  << M << " " << N_demes <<" "<<time_start<<" "<<run_time <<endl;
 
     cout << "Finished in " << run_time << " seconds \n";
 
