@@ -16,16 +16,18 @@
 
 //define key parameters
 
-const int N_demes = 300; // number of demes in comiving frame
+const int N_demes = 500; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
 const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-int tao = 50000; // lysis time in simulation steps
-int beta = 45; //number of phage released with lysis
+float tao = .05; // lysis time in simulation steps
+int beta = 20; //number of phage released with lysis
 float M = 1; // Migration rate
+float alpha = 1;
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,6); // Run time in generations
 long tao_count = pow(10,int(log10(tao) + 2));
+
 //double B_frac = .4;
 
 
@@ -124,6 +126,8 @@ int main (int argc, char * argv[]){
     int total_phage = int(N_demes/2)*100;
     int total_bac_no_inf=0;
     int total_bac_inf= K_bac*int(N_demes/2);
+    //int tao_ = tao* K_bac*beta;
+    int tao_ = 50;
 
     ///---setup iinitial population
     for(int m= 0; m<int(N_demes/2);m++){
@@ -213,6 +217,7 @@ int main (int argc, char * argv[]){
             }
 
             if(r_deme==0){
+                //cout<<"r_deme =0 "<<endl;
                 if(V_deme[r_deme][r_phage]<1){
                     cout<<"migration error"<<endl;
                     cout<< V_deme[r_deme][0]<<" "<<V_deme[r_deme][1]<<endl;
@@ -236,66 +241,70 @@ int main (int argc, char * argv[]){
             
 
             //infection
+            uniform_real_distribution<double> distribution_di(0.0, 1.0);
+            double p_inf = distribution_di(e);
             uniform_int_distribution<int> distribution_indi(0, total_phage-1);
             int phage_indi = distribution_indi(e) +1;
             int phage_cnti=0;
             int phage_foundi=0;
             int r_demei;
             int r_phagei;
-            for(int m =0;m<N_demes;m++){
-                if (phage_foundi==0){
+            if(p_inf<alpha){
+                for(int m =0;m<N_demes;m++){
+                    if (phage_foundi==0){
 
-                    phage_cnti+=V_deme[m][0];
-                    if (phage_cnti+1>phage_indi){
-                        r_demei=m;
-                        r_phagei = 0;
-                        phage_foundi=1;
+                        phage_cnti+=V_deme[m][0];
+                        if (phage_cnti+1>phage_indi){
+                            r_demei=m;
+                            r_phagei = 0;
+                            phage_foundi=1;
+
+                        }
+                    }
+                    if (phage_foundi==0){
+                        phage_cnti+=V_deme[m][1];
+
+                        if (phage_cnti+1>phage_indi){
+                            r_demei=m;
+                            r_phagei = 1;
+                            phage_foundi=1;
+
+                        }
 
                     }
                 }
-                if (phage_foundi==0){
-                    phage_cnti+=V_deme[m][1];
+                //cout<<r_phagei<<endl;
 
-                    if (phage_cnti+1>phage_indi){
-                        r_demei=m;
-                        r_phagei = 1;
-                        phage_foundi=1;
+
+                int B_found=0;
+                int bac_ind;
+                for (int n=0;n<K_bac;n++){
+                    if (B_found==0){
+                        if(B_deme[r_demei][n]==0){
+
+                            B_found=1;
+                            bac_ind=n;
+                        }
+
 
                     }
 
                 }
-            }
-            //cout<<r_phagei<<endl;
 
-
-            int B_found=0;
-            int bac_ind;
-            for (int n=0;n<K_bac;n++){
-                if (B_found==0){
-                    if(B_deme[r_deme][n]==0){
-
-                        B_found=1;
-                        bac_ind=n;
+                if (B_found==1){
+                    B_deme[r_demei][bac_ind] = (1+r_phagei)*tao_count;
+                    if(V_deme[r_demei][r_phagei]<1){
+                        cout<<"infection error"<<endl;
+                        cout<< V_deme[r_demei][0]<<" "<<V_deme[r_demei][1]<<endl;
+                        cout<< r_demei<< " "<<r_phagei<<endl;
+                        cout<<phage_indi<<" "<< total_phage<<" "<<phage_cnti<<endl;
+                        
+                        
                     }
-
+                        
+                    V_deme[r_demei][r_phagei]-=1;
 
                 }
-
-            }
-
-            if (B_found==1){
-                B_deme[r_demei][bac_ind] = (1+r_phagei)*tao_count;
-                if(V_deme[r_demei][r_phagei]<1){
-                    cout<<"infection error"<<endl;
-                    cout<< V_deme[r_demei][0]<<" "<<V_deme[r_demei][1]<<endl;
-                    cout<< r_demei<< " "<<r_phagei<<endl;
-                    cout<<phage_indi<<" "<< total_phage<<" "<<phage_cnti<<endl;
-                    
-                    
-                }
-                    
-                V_deme[r_demei][r_phagei]-=1;
-
             }
         }
 
@@ -311,17 +320,23 @@ int main (int argc, char * argv[]){
                 if (B_deme[m][nb]>0){
                     B_deme[m][nb]+=1;
                 }
-                if ((B_deme[m][nb]% tao_count)==tao){
+                if ((B_deme[m][nb]% tao_count)==tao_){
+                    //if (m==10){
+                     //   cout <<V_deme[m][0]<<" "<<V_deme[m][1]<<endl;
+                   // }
                     //cout<<B_deme[m][nb]<<endl;
                     
                     //int found_empty=0;
                     int cnt=0;
 
-                    int burst_phage=(B_deme[m][nb]-tao)/tao_count-1;
+                    int burst_phage=(B_deme[m][nb]-tao_)/tao_count-1;
                     //cout << burst_phage<<endl;
                     B_deme[m][nb]=-1;
                     //cout<<m<<endl;
                     V_deme[m][burst_phage]+=beta;
+                    //if (m==10){
+                     //   cout <<V_deme[m][0]<<" "<<V_deme[m][1]<<" "<<burst_phage<<endl;
+                    //}
                     //total_phage+=beta;
 
                 }
@@ -332,16 +347,22 @@ int main (int argc, char * argv[]){
         
 
 		//shift populatoion
-		int tot_pop=0;
+		total_phage=0;
 		int last_deme=0;
 		for(int m=0;m<N_demes;m++){
 
-			tot_pop+=V_deme[m][0]+V_deme[m][1];
+			total_phage+=V_deme[m][0]+V_deme[m][1];
 			if (V_deme[m][0]+V_deme[m][1]>0){
 				last_deme=m;
 
 
 			}
+            if(( V_deme[m][0]<0 )|| (V_deme[m][1]<0)){
+                cout <<"deme population negative, timestep " <<t <<endl;
+                
+                //cout <<V_deme[m][0]<<" " << V_deme[m][1]<<endl;
+                exit(EXIT_FAILURE);
+            }
 
 
 		
@@ -352,10 +373,10 @@ int main (int argc, char * argv[]){
 		///segmentation fault here!!!
         int shift = 0;
         //if (last_deme >= N_demes*(3/4)){
-        //    shift = 1;
+        shift = last_deme-10-int(N_demes/2);
             
         //};
-
+        
 		//cout<<last_deme<<endl;
 		int shiftpop=0;
 
@@ -391,23 +412,11 @@ int main (int argc, char * argv[]){
 		}
         //total_phage-=shiftpop;
 
-        total_phage=0;
-        for(int m=0;m<N_demes;m++){
-            //total_phage+=V_deme[m][0]+V_deme[m][1];
-            if(( V_deme[m][0]<0 )|| (V_deme[m][1]<0)){
-                cout <<"deme population negative, timestep " <<t <<endl;
-                
-                cout <<V_deme[m][0]<<" " << V_deme[m][1]<<endl;
-                exit(EXIT_FAILURE);
-            }
-            total_phage+=V_deme[m][0]+V_deme[m][1];
-            
-        }
-        cout<<total_phage<<endl;
+
 
 		if(t%record_time ==0){
             cout<<"timestep: "<< t<<" demeshift: "<< shift<<endl;
-			pop_hist.push_back(shiftpop+tot_pop);
+			pop_hist.push_back(shiftpop+total_phage);
 			het_hist.push_back(calcHet(V_deme));
 		}
 
@@ -417,7 +426,7 @@ int main (int argc, char * argv[]){
     for (int m = 0; m < N_demes; m++){
     
 
-        fprofp << m <<" " <<V_deme[m][0]<<" " <<V_deme[m][1] <<" " <<endl;
+        fprofp << m <<" "<<V_deme[m][0]<<" " <<V_deme[m][1] <<endl;
 
         int B_health=0;
         int B_inf=0;
