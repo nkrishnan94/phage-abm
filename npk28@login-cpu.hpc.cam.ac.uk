@@ -21,13 +21,12 @@ const int N_demes = 200; // number of demes in comiving frame
 const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
 float tao_ = 50; // lysis time in simulation steps
-int beta = 50; //number of phage released with lysis
+int beta = 20; //number of phage released with lysis
 float M = 1; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,6); // Run time in generations
+int samp_id=0;
 float alpha = 1;
-
-
 
 //double B_frac = .4;
 
@@ -64,13 +63,15 @@ int main (int argc, char * argv[]){
 	//coutcout <<tao_count<<endl;
 	///---------read in simulation parameters from out put flags
 	int c;
-    while ((c = getopt (argc, argv, "b:t:H")) != -1)
+    while ((c = getopt (argc, argv, "b:t:i:H")) != -1)
     {
 
         if (c == 'b')
             beta = atof(optarg); // migration probability
         else if (c == 't')
             tao_ = atof(optarg); // migration probability
+        else if (c == 'i')
+            samp_id = atoi(optarg); //keep track of profile through time
         else if (c == 'H')
             prof_hist = atoi(optarg); //keep track of profile through time 
     }
@@ -85,24 +86,30 @@ int main (int argc, char * argv[]){
 
 	//-------------intialize data files----------------------------
     ofstream fpop, fhet, fprofp,fprofb, flog; //filenames
-    ostringstream strTime, strKb, strM,strDeme,strF; //paramater strings
+    ostringstream strTime, strKb, strM,strB,strT, strDeme,strA,strI; //paramater strings
     strKb << K_bac;
     strTime << buffer;
+    strB<< beta;
+    strT << tao_;
     strM << M;
+    strI << samp_id;
+    strA << alpha;
     strDeme << N_demes;
 
     
     string termination = "_demes" + strDeme.str() +"_" +strTime.str() +".txt";
-    string velName = "velocity_Nb" + strKb.str()  + "_migr" + strM.str() + "_I" + termination;
-    string hetName = "hetero_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  + termination;
-    string profpName = "profile_phage_Nb" + strKb.str()  + "_migr" + strM.str()  + termination;
-    string profbName = "profile_bac_Nb" + strKb.str()  + "_migr" + strM.str()  + termination;
-    string logName = "log_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  + termination;
-    flog.open(logName);
-    fhet.open(hetName);
-    fpop.open(velName);
-    fprofp.open(profpName);
-    fprofb.open(profbName);
+    string velName = "velocity_Nb" + strKb.str()  + "_migr" + strM.str() + "_B" +strB.str()+"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+ termination;
+    string hetName = "hetero_Nb" + strKb.str()  + "_migr" + strM.str() + "_B" +strB.str()+ "+_tau"+strT.str()+ "_alpha"+strA.str()+"_ID"+strI.str()+termination;
+    string profpName = "profile_phage_Nb" + strKb.str()  + "_migr" + strM.str() + "_B" +strB.str()+"+_tau"+strT.str()+"_alpha"+strA.str()+ "_ID"+strI.str()+termination;
+    string profbName = "profile_bac_Nb" + strKb.str()  + "_migr" + strM.str()  +"_B" +strB.str()+  "+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+termination;
+    string logName = "log_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  +"_B" +strB.str()+ "+_tau"+strT.str()+ "_alpha"+strA.str()+"_ID"+strI.str()+termination;
+    string folder = "het_data/";
+    //string folder = "";
+    flog.open(folder+logName);
+    fhet.open(folder+hetName);
+    fpop.open(folder+velName);
+    fprofp.open(folder+profpName);
+    fprofb.open(folder+profbName);
 
 
     /// ---------------setup RNG-----------------
@@ -127,6 +134,8 @@ int main (int argc, char * argv[]){
     int total_phage = int(N_demes/2)*100;
     int total_bac_no_inf=0;
     int total_bac_inf= K_bac*int(N_demes/2);
+    float het =.5;
+    int t=0;
     int tao = tao_*K_bac*beta;
     long tao_count = pow(10,int(log10(tao) + 2));
 
@@ -144,7 +153,8 @@ int main (int argc, char * argv[]){
 
 
     //main loop
-    for (unsigned int t = 0; t < N_gen; t++){
+    while((het>.05) ||(t<500000) ){
+    //for (unsigned int t = 0; t < N_gen; t++){
         if (total_phage>1){
             
 
@@ -218,7 +228,6 @@ int main (int argc, char * argv[]){
             }
 
             if(r_deme==0){
-                //cout<<"r_deme =0 "<<endl;
                 if(V_deme[r_deme][r_phage]<1){
                     cout<<"migration error"<<endl;
                     cout<< V_deme[r_deme][0]<<" "<<V_deme[r_deme][1]<<endl;
@@ -250,62 +259,62 @@ int main (int argc, char * argv[]){
             int phage_foundi=0;
             int r_demei;
             int r_phagei;
-            if (p_inf<alpha){
-                for(int m =0;m<N_demes;m++){
-                    if (phage_foundi==0){
+            if(p_inf<alpha){
+	            for(int m =0;m<N_demes;m++){
+	                if (phage_foundi==0){
 
-                        phage_cnti+=V_deme[m][0];
-                        if (phage_cnti+1>phage_indi){
-                            r_demei=m;
-                            r_phagei = 0;
-                            phage_foundi=1;
+	                    phage_cnti+=V_deme[m][0];
+	                    if (phage_cnti+1>phage_indi){
+	                        r_demei=m;
+	                        r_phagei = 0;
+	                        phage_foundi=1;
 
-                        }
-                    }
-                    if (phage_foundi==0){
-                        phage_cnti+=V_deme[m][1];
+	                    }
+	                }
+	                if (phage_foundi==0){
+	                    phage_cnti+=V_deme[m][1];
 
-                        if (phage_cnti+1>phage_indi){
-                            r_demei=m;
-                            r_phagei = 1;
-                            phage_foundi=1;
+	                    if (phage_cnti+1>phage_indi){
+	                        r_demei=m;
+	                        r_phagei = 1;
+	                        phage_foundi=1;
 
-                        }
+	                    }
 
-                    }
-                }
-                //cout<<r_phagei<<endl;
-
-
-                int B_found=0;
-                int bac_ind;
-                for (int n=0;n<K_bac;n++){
-                    if (B_found==0){
-                        if(B_deme[r_demei][n]==0){
-
-                            B_found=1;
-                            bac_ind=n;
-                        }
+	                }
+	            }
+	            //cout<<r_phagei<<endl;
 
 
-                    }
+	            int B_found=0;
+	            int bac_ind;
+	            for (int n=0;n<K_bac;n++){
+	                if (B_found==0){
+	                    if(B_deme[r_deme][n]==0){
 
-                }
+	                        B_found=1;
+	                        bac_ind=n;
+	                    }
 
-                if (B_found==1){
-                    B_deme[r_demei][bac_ind] = (1+r_phagei)*tao_count;
-                    if(V_deme[r_demei][r_phagei]<1){
-                        cout<<"infection error"<<endl;
-                        cout<< V_deme[r_demei][0]<<" "<<V_deme[r_demei][1]<<endl;
-                        cout<< r_demei<< " "<<r_phagei<<endl;
-                        cout<<phage_indi<<" "<< total_phage<<" "<<phage_cnti<<endl;
-                        
-                        
-                    }
-                        
-                    V_deme[r_demei][r_phagei]-=1;
 
-                }
+	                }
+
+	            }
+
+	            if (B_found==1){
+	                B_deme[r_demei][bac_ind] = (1+r_phagei)*tao_count;
+	                if(V_deme[r_demei][r_phagei]<1){
+	                    cout<<"infection error"<<endl;
+	                    cout<< V_deme[r_demei][0]<<" "<<V_deme[r_demei][1]<<endl;
+	                    cout<< r_demei<< " "<<r_phagei<<endl;
+	                    cout<<phage_indi<<" "<< total_phage<<" "<<phage_cnti<<endl;
+	                    
+	                    
+	                }
+	                    
+	                V_deme[r_demei][r_phagei]-=1;
+
+	            }
             }
         }
 
@@ -322,9 +331,6 @@ int main (int argc, char * argv[]){
                     B_deme[m][nb]+=1;
                 }
                 if ((B_deme[m][nb]% tao_count)==tao){
-                    //if (m==10){
-                     //   cout <<V_deme[m][0]<<" "<<V_deme[m][1]<<endl;
-                   // }
                     //cout<<B_deme[m][nb]<<endl;
                     
                     //int found_empty=0;
@@ -335,9 +341,6 @@ int main (int argc, char * argv[]){
                     B_deme[m][nb]=-1;
                     //cout<<m<<endl;
                     V_deme[m][burst_phage]+=beta;
-                    //if (m==10){
-                     //   cout <<V_deme[m][0]<<" "<<V_deme[m][1]<<" "<<burst_phage<<endl;
-                    //}
                     //total_phage+=beta;
 
                 }
@@ -414,12 +417,14 @@ int main (int argc, char * argv[]){
         //total_phage-=shiftpop;
 
 
-
+       
 		if(t%record_time ==0){
-            cout<<"timestep: "<< t<<" demeshift: "<< shift<<endl;
+            het = calcHet(V_deme);
+            cout<<"timestep: "<< t<<" Het: "<< het<<endl;
 			pop_hist.push_back(shiftpop+total_phage);
-			het_hist.push_back(calcHet(V_deme));
+			het_hist.push_back(het);
 		}
+        t+=1;
 
 	}
 	
@@ -427,7 +432,7 @@ int main (int argc, char * argv[]){
     for (int m = 0; m < N_demes; m++){
     
 
-        fprofp << m <<" "<<V_deme[m][0]<<" " <<V_deme[m][1] <<endl;
+        fprofp << m <<" " <<V_deme[m][0]<<" " <<V_deme[m][1] <<endl;
 
         int B_health=0;
         int B_inf=0;
@@ -450,7 +455,7 @@ int main (int argc, char * argv[]){
 
     }
     //std::cout <<"hi"<<std::endl;
-    for(int t=0; t <N_gen/record_time;t++){
+    for(int t=0; t <t/record_time;t++){
     	fpop <<t*record_time<< " " << pop_hist[t] <<endl;
     	fhet <<t*record_time<< " " << het_hist[t] <<endl;
 
@@ -461,8 +466,8 @@ int main (int argc, char * argv[]){
     
     time_t time_end;
     double run_time = difftime(time(&time_start), time(&time_end));
-    flog << "Number of generations, Migration rate, Number of demes, Start time, Elapsed run time (secs_" << endl;
-    flog << N_gen << " "  << M << ", " << N_demes << time_start<< run_time <<endl;
+    flog << "Number of generations, Migration rate, Number of demes, time steps,Start time, Elapsed run time (secs_" << endl;
+    flog << N_gen << " "  << M << " " << N_demes<<" " << t<<" "<<time_start<< " " <<run_time <<endl;
 
     cout << "Finished in " << run_time << " seconds \n";
 
