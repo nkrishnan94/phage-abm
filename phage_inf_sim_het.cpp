@@ -16,9 +16,9 @@
 
 //define key parameters
 
-const int N_demes = 200; // number of demes in comiving frame
+const int N_demes = 300; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=50; // deme size for bacteria
+const int K_bac=100; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
 float tao_ = .1; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
@@ -153,7 +153,7 @@ int main (int argc, char * argv[]){
 
 
     //main loop
-    while((het>.05) ||(t<500000) ){
+    while((het>.01) ||(t<5000000) ){
     //for (unsigned int t = 0; t < N_gen; t++){
         if (total_phage>1){
             
@@ -419,6 +419,7 @@ int main (int argc, char * argv[]){
 
        
 		if(t%record_time ==0){
+
             het = calcHet(V_deme);
             cout<<"timestep: "<< t<<" Het: "<< het<<endl;
 			pop_hist.push_back(shiftpop+total_phage);
@@ -455,9 +456,10 @@ int main (int argc, char * argv[]){
 
     }
     //std::cout <<"hi"<<std::endl;
-    for(int t=0; t <t/record_time;t++){
-    	fpop <<t*record_time<< " " << pop_hist[t] <<endl;
-    	fhet <<t*record_time<< " " << het_hist[t] <<endl;
+    for(int dt=0; dt<int(t/record_time);dt++){
+    	//cout <<het_hist[0]<<endl;
+    	fpop <<dt*record_time<< " " << pop_hist[dt] <<endl;
+    	fhet <<dt*record_time<< " " << het_hist[dt] <<endl;
 
     }
 
