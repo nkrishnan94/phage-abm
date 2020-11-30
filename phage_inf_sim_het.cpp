@@ -18,9 +18,9 @@
 
 const int N_demes = 300; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=100; // deme size for bacteria
+const int K_bac=1000; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-float tao_ = .1; // lysis time in simulation steps
+float tao = 50; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
 float M = 1; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
@@ -69,7 +69,7 @@ int main (int argc, char * argv[]){
         if (c == 'b')
             beta = atof(optarg); // migration probability
         else if (c == 't')
-            tao_ = atof(optarg); // migration probability
+            tao = atof(optarg); // migration probability
         else if (c == 'i')
             samp_id = atoi(optarg); //keep track of profile through time
         else if (c == 'H')
@@ -90,7 +90,7 @@ int main (int argc, char * argv[]){
     strKb << K_bac;
     strTime << buffer;
     strB<< beta;
-    strT << tao_;
+    strT << tao;
     strM << M;
     strI << samp_id;
     strA << alpha;
@@ -122,13 +122,13 @@ int main (int argc, char * argv[]){
 	//gsl_rng_set(r, sysRandom);
 	int seed =3133;
 	int tRand = time(NULL);
-	mt19937 e(tRand);
+	mt19937 e(samp_id);
 
 	///------additional parameters
 	long B_deme[N_demes][K_bac] = {{0}};// Keep track of Bacteria -> Healthy, infected, lysed
 	long V_deme[N_demes][2] = {{0}};// //Keep track of N_spec species of phage
     double shiftDemes = 0; // Number of demes shifted
-    int record_time=50000;
+    int record_time=1000;
     vector <double> pop_hist;
     vector <double> het_hist;
     int total_phage = int(N_demes/2)*100;
@@ -136,7 +136,7 @@ int main (int argc, char * argv[]){
     int total_bac_inf= K_bac*int(N_demes/2);
     float het =.5;
     int t=0;
-    int tao = tao_*K_bac*beta;
+    //int tao = tao_*K_bac*beta;
     long tao_count = pow(10,int(log10(tao) + 2));
 
     ///---setup iinitial population
@@ -356,6 +356,7 @@ int main (int argc, char * argv[]){
 		for(int m=0;m<N_demes;m++){
 
 			total_phage+=V_deme[m][0]+V_deme[m][1];
+            
 			if (V_deme[m][0]+V_deme[m][1]>0){
 				last_deme=m;
 
