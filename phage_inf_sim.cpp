@@ -20,7 +20,7 @@ const int N_demes = 200; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
 const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-float tao_ = .1; // lysis time in simulation steps
+float tao = 20; // lysis time in simulation steps
 int beta = 20; //number of phage released with lysis
 float M = 1; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
@@ -70,7 +70,7 @@ int main (int argc, char * argv[]){
         if (c == 'b')
             beta = atof(optarg); // migration probability
         else if (c == 't')
-            tao_ = atof(optarg); // migration probability
+            tao = atof(optarg); // migration probability
         else if (c == 'H')
             prof_hist = atoi(optarg); //keep track of profile through time 
     }
@@ -127,15 +127,15 @@ int main (int argc, char * argv[]){
     int total_phage = int(N_demes/2)*100;
     int total_bac_no_inf=0;
     int total_bac_inf= K_bac*int(N_demes/2);
-    int tao = tao_*K_bac*beta;
+    //int tao = tao_*K_bac*beta;
     long tao_count = pow(10,int(log10(tao) + 2));
 
     ///---setup iinitial population
     for(int m= 0; m<int(N_demes/2);m++){
 
-		V_deme[m][0]=50;
+		V_deme[m][0]=90;
 
-		V_deme[m][1]=50;
+		V_deme[m][1]=10;
 
     }
 
@@ -416,7 +416,7 @@ int main (int argc, char * argv[]){
 
 
 		if(t%record_time ==0){
-            cout<<"timestep: "<< t<<" demeshift: "<< shift<<endl;
+            cout<<"timestep: "<< t<<" Het: "<< calcHet(V_deme)<<endl;
 			pop_hist.push_back(shiftpop+total_phage);
 			het_hist.push_back(calcHet(V_deme));
 		}

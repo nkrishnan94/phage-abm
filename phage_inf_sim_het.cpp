@@ -16,15 +16,16 @@
 
 //define key parameters
 
-const int N_demes = 300; // number of demes in comiving frame
+const int N_demes = 200; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=1000; // deme size for bacteria
+const int K_bac=10; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-float tao = 50; // lysis time in simulation steps
-int beta = 50; //number of phage released with lysis
+float tao = 500; // lysis time in simulation steps
+int beta = 20; //number of phage released with lysis
 float M = 1; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,6); // Run time in generations
+unsigned int assign_gene_time = 5*pow(10,6); // Run time in generations
 int samp_id=0;
 float alpha = 1;
 
@@ -128,7 +129,7 @@ int main (int argc, char * argv[]){
 	long B_deme[N_demes][K_bac] = {{0}};// Keep track of Bacteria -> Healthy, infected, lysed
 	long V_deme[N_demes][2] = {{0}};// //Keep track of N_spec species of phage
     double shiftDemes = 0; // Number of demes shifted
-    int record_time=1000;
+    int record_time=10000;
     vector <double> pop_hist;
     vector <double> het_hist;
     int total_phage = int(N_demes/2)*100;
@@ -142,9 +143,9 @@ int main (int argc, char * argv[]){
     ///---setup iinitial population
     for(int m= 0; m<int(N_demes/2);m++){
 
-		V_deme[m][0]=50;
+		V_deme[m][0]=100;
 
-		V_deme[m][1]=50;
+		V_deme[m][1]=0;
 
     }
 
@@ -153,7 +154,7 @@ int main (int argc, char * argv[]){
 
 
     //main loop
-    while((het>.01) ||(t<5000000) ){
+    while((het>.0001) ||(t<assign_gene_time) ){
     //for (unsigned int t = 0; t < N_gen; t++){
         if (total_phage>1){
             
@@ -324,7 +325,7 @@ int main (int argc, char * argv[]){
 
 
 
-            //lysis
+        //lysis
         for(int m=0; m< N_demes;m++){
             for(int nb=0; nb< K_bac;nb++){
                 if (B_deme[m][nb]>0){
@@ -425,7 +426,32 @@ int main (int argc, char * argv[]){
             cout<<"timestep: "<< t<<" Het: "<< het<<endl;
 			pop_hist.push_back(shiftpop+total_phage);
 			het_hist.push_back(het);
+
+
+
 		}
+
+        if(t==assign_gene_time){
+        	cout<<"hi\n";
+
+            for(int m=0;m<N_demes;m++){
+
+                int deme_pop = V_deme[m][0]+V_deme[m][1];
+                if (deme_pop>0){
+
+                    binomial_distribution<int> distribution_bi(deme_pop,0.5);
+                    int a0_pick = distribution_bi(e);
+                    V_deme[m][0] = a0_pick;
+                    V_deme[m][1] = deme_pop - a0_pick;
+
+                }
+
+            
+            }
+
+
+        }
+
         t+=1;
 
 	}
