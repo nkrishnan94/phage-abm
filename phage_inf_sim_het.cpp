@@ -16,16 +16,16 @@
 
 //define key parameters
 
-const int N_demes = 200; // number of demes in comiving frame
+const int N_demes = 300; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=10; // deme size for bacteria
+const int K_bac=100; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-float tao = 500; // lysis time in simulation steps
+float tao = 50; // lysis time in simulation steps
 int beta = 20; //number of phage released with lysis
 float M = 1; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,6); // Run time in generations
-unsigned int assign_gene_time = 5*pow(10,6); // Run time in generations
+unsigned int assign_gene_time = 1*pow(10,6); // Run time in generations
 int samp_id=0;
 float alpha = 1;
 
@@ -86,7 +86,7 @@ int main (int argc, char * argv[]){
 	strftime(buffer,80,"%F-%H-%M-%S", timeinfo);
 
 	//-------------intialize data files----------------------------
-    ofstream fpop, fhet, fprofp,fprofb, flog; //filenames
+    ofstream fpop, fhet, fprofp,fprofb, fa1,fa2,flog; //filenames
     ostringstream strTime, strKb, strM,strB,strT, strDeme,strA,strI; //paramater strings
     strKb << K_bac;
     strTime << buffer;
@@ -102,13 +102,17 @@ int main (int argc, char * argv[]){
     string velName = "velocity_Nb" + strKb.str()  + "_migr" + strM.str() + "_B" +strB.str()+"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+ termination;
     string hetName = "hetero_Nb" + strKb.str()  + "_migr" + strM.str() + "_B" +strB.str()+ "+_tau"+strT.str()+ "_alpha"+strA.str()+"_ID"+strI.str()+termination;
     string profpName = "profile_phage_Nb" + strKb.str()  + "_migr" + strM.str() + "_B" +strB.str()+"+_tau"+strT.str()+"_alpha"+strA.str()+ "_ID"+strI.str()+termination;
-    string profbName = "profile_bac_Nb" + strKb.str()  + "_migr" + strM.str()  +"_B" +strB.str()+  "+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+termination;
-    string logName = "log_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  +"_B" +strB.str()+ "+_tau"+strT.str()+ "_alpha"+strA.str()+"_ID"+strI.str()+termination;
+    string profbName = "profile_bac_Nb" + strKb.str()  + "_migr" + strM.str() + "_B" +strB.str()+"+_tau"+strT.str()+"_alpha"+strA.str()+ "_ID"+strI.str()+termination;
+    string a1Name = "allele1_Nb" + strKb.str()  + "_migr" + strM.str()  +"_B" +strB.str()+  "+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+termination;
+    string a2Name = "allele2_Nb" + strKb.str()  + "_migr" + strM.str()  +"_B" +strB.str()+  "+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+termination;
+    string logName = "log_Nb_" + strKb.str()  + "_migr" + strM.str() + "_B"  +"_B" +strB.str()+ "+_tau"+strT.str()+ "_alpha"+strA.str()+"_ID"+strI.str()+termination;
     string folder = "het_data/";
     //string folder = "";
     flog.open(folder+logName);
     fhet.open(folder+hetName);
     fpop.open(folder+velName);
+    fa1.open(folder+a1Name);
+    fa2.open(folder+a2Name);
     fprofp.open(folder+profpName);
     fprofb.open(folder+profbName);
 
@@ -132,6 +136,8 @@ int main (int argc, char * argv[]){
     int record_time=10000;
     vector <double> pop_hist;
     vector <double> het_hist;
+    vector <double> a1_hist;
+    vector <double> a2_hist;
     int total_phage = int(N_demes/2)*100;
     int total_bac_no_inf=0;
     int total_bac_inf= K_bac*int(N_demes/2);
@@ -154,7 +160,7 @@ int main (int argc, char * argv[]){
 
 
     //main loop
-    while((het>.0001) ||(t<assign_gene_time) ){
+    while((het>.01) ||(t<assign_gene_time*2) ){
     //for (unsigned int t = 0; t < N_gen; t++){
         if (total_phage>1){
             
@@ -427,12 +433,29 @@ int main (int argc, char * argv[]){
 			pop_hist.push_back(shiftpop+total_phage);
 			het_hist.push_back(het);
 
+			int a1_tot=0;
+			int a2_tot=0;
+
+			for(int m=0;m<N_demes;m++){
+				a1_tot+=V_deme[m][0];
+				a2_tot+=V_deme[m][1];
+
+
+
+		
+			}
+
+
+			a1_hist.push_back(a1_tot);
+			a2_hist.push_back(a2_tot);
+
+
 
 
 		}
 
         if(t==assign_gene_time){
-        	cout<<"hi\n";
+        	cout<<"Assigning labels\n";
 
             for(int m=0;m<N_demes;m++){
 
@@ -448,6 +471,33 @@ int main (int argc, char * argv[]){
 
             
             }
+            cout<<"Saving profiles\n";
+            for (int m = 0; m < N_demes; m++){
+            	
+    
+
+		        fprofp << m <<" " <<V_deme[m][0]<<" " <<V_deme[m][1] <<endl;
+
+		        int B_health=0;
+		        int B_inf=0;
+		        int B_lys=0;
+
+		        for(int n = 0; n < K_bac; n++){
+		        	if (B_deme[m][n]==0){
+		        		B_health+=1;
+		        	}
+		        	if (B_deme[m][n]>0){
+		        		B_inf+=1;
+		        	}
+		        	if (B_deme[m][n]==-1){
+		        		B_lys+=1;
+		        	}	
+		    	}
+		    	fprofb <<m<<" "<< B_health <<" " <<B_inf<<" " <<B_lys <<endl;
+
+
+
+		    }
 
 
         }
@@ -457,36 +507,14 @@ int main (int argc, char * argv[]){
 	}
 	
 	//////-----write data files-------------
-    for (int m = 0; m < N_demes; m++){
     
-
-        fprofp << m <<" " <<V_deme[m][0]<<" " <<V_deme[m][1] <<endl;
-
-        int B_health=0;
-        int B_inf=0;
-        int B_lys=0;
-
-        for(int n = 0; n < K_bac; n++){
-        	if (B_deme[m][n]==0){
-        		B_health+=1;
-        	}
-        	if (B_deme[m][n]>0){
-        		B_inf+=1;
-        	}
-        	if (B_deme[m][n]==-1){
-        		B_lys+=1;
-        	}	
-    	}
-    	fprofb <<m<<" "<< B_health <<" " <<B_inf<<" " <<B_lys <<endl;
-
-
-
-    }
     //std::cout <<"hi"<<std::endl;
     for(int dt=0; dt<int(t/record_time);dt++){
     	//cout <<het_hist[0]<<endl;
     	fpop <<dt*record_time<< " " << pop_hist[dt] <<endl;
     	fhet <<dt*record_time<< " " << het_hist[dt] <<endl;
+    	fa1 <<dt*record_time<< " " << a1_hist[dt] <<endl;
+    	fa2 <<dt*record_time<< " " << a2_hist[dt] <<endl;
 
     }
 
