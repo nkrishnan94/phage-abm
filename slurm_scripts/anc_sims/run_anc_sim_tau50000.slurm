@@ -47,5 +47,5 @@ module load rhel7/default-peta4            # REQUIRED - loads the basic environm
 echo "This is job" $SLURM_ARRAY_TASK_ID
 
 #! Command line that we want to run:
-g++ -o outanc500_$SLURM_ARRAY_TASK_ID phage_inf_sim_anc_dist.cpp -std=c++11 -lgsl 
-./outanc500_$SLURM_ARRAY_TASK_ID -t 500 -i $SLURM_ARRAY_TASK_ID
+g++ -o outanc50000_$SLURM_ARRAY_TASK_ID phage_inf_sim_anc_dist.cpp -std=c++11 -lgsl 
+./outanc50000_$SLURM_ARRAY_TASK_ID -t 50000 -i $SLURM_ARRAY_TASK_ID
