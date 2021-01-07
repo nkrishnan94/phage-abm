@@ -156,13 +156,10 @@ int main (int argc, char * argv[]){
     //main loop
     for (unsigned int t = 0; t < N_gen; t++){
         if (total_phage>1){
-            
 
             //migration
             uniform_int_distribution<int> distribution_ind(0, total_phage-1);
             int phage_ind = distribution_ind(e)+1;
-            //uniform_int_distribution<int> distribution_Im(0, K_vir);
-            //int r_ind = distribution_Im(e);
             int phage_cnt=0;
             int phage_found=0;
             int r_deme;
@@ -178,6 +175,7 @@ int main (int argc, char * argv[]){
 
                     }
                 }
+
                 if (phage_found==0){
                     phage_cnt+=V_deme[m][1];
 
@@ -211,9 +209,9 @@ int main (int argc, char * argv[]){
                 if(p_mig<M){
                     double r_dir = distribution_d(e);
                     if (r_dir<.5){
-                        mig_deme = r_deme -1;
+                        mig_deme = r_deme - 1;
                     } else{
-                        mig_deme = r_deme +1;
+                        mig_deme = r_deme + 1;
 
                     }
                     if(V_deme[r_deme][r_phage]<1){
