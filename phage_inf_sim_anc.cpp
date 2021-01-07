@@ -710,7 +710,7 @@ int main (int argc, char * argv[]){
 
         if(t==assign_gene_time){
             N_mark =N_demes;
-            
+            //save 'initial ' profile'
 
             cout<<"Saving profiles\n";
             for (int m = 0; m < N_demes; m++){
@@ -737,7 +737,7 @@ int main (int argc, char * argv[]){
 
 
             }
-
+            //assign label to free phage
             int deme_pop=0;
             for(int m=0;m<N_demes;m++){
                 int deme_pop=0;
@@ -752,6 +752,18 @@ int main (int argc, char * argv[]){
                 }
                 V_deme[m][m]= deme_pop;
 
+
+            }
+            //assign label  to absorbed phage
+            for(int m=0; m< N_demes;m++){
+                for(int nb=0; nb< K_bac;nb++){
+                    if (B_deme[m][nb]>0){
+                        B_deme[m][nb] = B_deme[m][nb]*m;
+
+
+                    }
+
+                }
 
             }
 
