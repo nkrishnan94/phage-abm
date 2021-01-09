@@ -15,7 +15,7 @@
 
 
 //define key parameters
-const int N_demes = 150; // number of demes in comiving frame
+const int N_demes = 100; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
 const int K_bac=100; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
@@ -124,7 +124,7 @@ int main (int argc, char * argv[]){
 	//gsl_rng_set(r, sysRandom);
 	int seed =3133;
 	int tRand = time(NULL);
-	mt19937 e(tRand);
+	mt19937 e(samp_id);
 
 	///------additional parameters
 	long B_deme[N_demes][K_bac] = {{0}};// Keep track of Bacteria -> Healthy, infected, lysed
@@ -479,10 +479,12 @@ int main (int argc, char * argv[]){
             //reset bacteria
             for(int m=0; m< N_demes;m++){
                 for(int nb=0; nb< K_bac;nb++){
-                    B_deme[m][nb] = 0;
+                        uniform_real_distribution<double> distribution_dr(0.0, 1.0);
+                        float p_all = distribution_dr(e);
 
 
-                    }
+                        B_deme[m][nb] = B_deme[m][nb]*int(round(p_all)+1);
+                    
 
                 }
 

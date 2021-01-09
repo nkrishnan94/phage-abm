@@ -20,12 +20,12 @@
 #! How many many cores will be allocated per task? (for single core jobs always leave this at 1)
 #SBATCH --cpus-per-task=1
 #! How much wallclock time will be required?
-#SBATCH --time=6:00:00
+#SBATCH --time=12:00:00
 #! Estimated maximum memory needed (job is force-stopped if exceeded):
 #! Submit a job array with index values between 0 and 31
 #! NOTE: This must be a range, not a single number (i.e. specifying '32' here would only run one job, with index 32)
 #SBATCH --mem=5980mb
-#SBATCH --array=1-1000
+#SBATCH --array=501-1000
 
 #! This is the partition name.
 #SBATCH -p skylake
@@ -47,5 +47,5 @@ module load rhel7/default-peta4            # REQUIRED - loads the basic environm
 echo "This is job" $SLURM_ARRAY_TASK_ID
 
 #! Command line that we want to run:
-g++ -o outanc20000_$SLURM_ARRAY_TASK_ID phage_inf_sim_anc.cpp -std=c++11 -lgsl 
-./outanc20000_$SLURM_ARRAY_TASK_ID -t 20000 -i $SLURM_ARRAY_TASK_ID
+g++ -o outanc1000000_$SLURM_ARRAY_TASK_ID phage_inf_sim_anc.cpp -std=c++11 -lgsl 
+./outanc1000000_$SLURM_ARRAY_TASK_ID -t 1000000 -i $SLURM_ARRAY_TASK_ID
