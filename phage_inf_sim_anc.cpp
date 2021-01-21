@@ -17,17 +17,22 @@
 //define key parameters
 const int N_demes = 100; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=50; // deme size for bacteria
+const int K_bac=25; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
 float tao = 200000; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
-float M = 1; // Migration rate
+float M = .25; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,6); // Run time in generations
-unsigned int assign_gene_time = 5*pow(10,6); // Run time in generations
+unsigned int assign_gene_time = 1*pow(10,8); // Run time in generations
 int samp_id=0;
-float alpha = 1;
+float alpha = 1*pow(10,-4);
 bool from_file_flag = false;
+
+
+
+
+
 
 
 
@@ -110,7 +115,7 @@ int main (int argc, char * argv[]){
     string folder = "anc_data/";
     flog.open(folder+logName);
     //fhet.open(hetName);
-    fpop.open(folder+velName);
+    //fpop.open(folder+velName);
     fprofp.open(folder+profpName);
     fprofb.open(folder+profbName);
     //fmark.open(folder+markName);
@@ -149,6 +154,7 @@ int main (int argc, char * argv[]){
 
     int shiftpop=0;
     int N_mark = 2;
+    uniform_real_distribution<double> distribution_d(0.0, 1.0);
 
     if(from_file_flag==true){
         string line;
@@ -261,9 +267,9 @@ int main (int argc, char * argv[]){
             //int r_phage = V_deme[r_deme][r_ind];
             int mig_deme;
             
-            uniform_real_distribution<double> distribution_d(0.0, 1.0);
+            
             double p_mig = distribution_d(e);
-            //cout<<r_deme<<endl;
+            //cout<<p_mig<<endl;
 
 
             if(r_deme>0){
@@ -311,10 +317,10 @@ int main (int argc, char * argv[]){
             
 
             //infection
-            uniform_int_distribution<int> distribution_indi(0, total_phage-1);
-            int phage_indi = distribution_indi(e) +1;
-            uniform_real_distribution<double> distribution_di(0.0, 1.0);
-            double p_inf = distribution_di(e);
+            //uniform_int_distribution<int> distribution_indi(0, total_phage-1);
+            int phage_indi = distribution_ind(e) +1;
+            //uniform_real_distribution<double> distribution_di(0.0, 1.0);
+            double p_inf = distribution_d(e);
             int phage_cnti=0;
             int phage_foundi=0;
             int r_demei;
@@ -463,14 +469,15 @@ int main (int argc, char * argv[]){
         if (t>assign_gene_time){
             
             demes_alive=0;
-            
-            for(int m=0;m<N_demes;m++){
+            for(int n=0;n<N_mark;n++){
+            //for(int m=0;m<N_demes;m++){
                 int org_tot =0;
 
-                for(int n=0;n<N_mark;n++){
+                //for(int n=0;n<N_mark;n++){
+                for(int m=0;m<N_demes;m++){
 
 
-                    org_tot+=V_deme[n][m];
+                    org_tot+=V_deme[m][n];
 
                 }
                 if(org_tot>0){
@@ -581,7 +588,7 @@ int main (int argc, char * argv[]){
 
        
         if(t%record_time ==0){
-            for(int m=0;m<N_demes;m++){
+            /*for(int m=0;m<N_demes;m++){
                 //int deme_tot =0;
                 int org_tot=0;
 
@@ -598,11 +605,9 @@ int main (int argc, char * argv[]){
         //    V_tot[n]=0;
         //}
 
-
-
             }
 
-            cout<<endl;
+            cout<<endl;*/
 
             for(int m=0;m<N_demes;m++){
                 int deme_tot =0;
@@ -636,7 +641,7 @@ int main (int argc, char * argv[]){
             cout<<"Demes until shift: "<< shift<<endl;
             cout<<"Last demes: "<< last_deme<<endl;
             cout<<"shift pop: "<< shiftpop <<" in bounds pop "<<total_phage<<endl;
-            pop_hist.push_back(shiftpop+total_phage);
+            //pop_hist.push_back(shiftpop+total_phage);
             //mark_hist.push_back(demes_alive);
             
 
@@ -778,14 +783,14 @@ int main (int argc, char * argv[]){
 	//////-----write data files-------------
     
     //std::cout <<"hi"<<std::endl;
-    for(int dt=0; dt <int(t/record_time);dt++){
+    /*for(int dt=0; dt <int(t/record_time);dt++){
 
     	fpop <<dt*record_time<< " " << pop_hist[dt] <<endl;
         //fmark<<dt*record_time<< " "<<mark_hist[dt]<<endl;
 
     	//fhet <<t*record_time<< " " << het_hist[t] <<endl;
 
-    }
+    }*/
 
 
     ///final out put

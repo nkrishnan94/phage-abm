@@ -20,13 +20,13 @@ const int N_demes = 100; // number of demes in comiving frame
 const int K_bac=100; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
 float tao = 200000; // lysis time in simulation steps
-int beta = 30; //number of phage released with lysis
-float M = 1; // Migration rate
+int beta = 50; //number of phage released with lysis
+float M = .25; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,6); // Run time in geerations
-unsigned int assign_gene_time = 5*pow(10,6); // Run time in generations
+unsigned int assign_gene_time = 1*pow(10,8); // Run time in generations
 int samp_id=0;
-float alpha = 1;
+float alpha = 1*pow(10,-4);
 
 
 
@@ -142,6 +142,7 @@ int main (int argc, char * argv[]){
     long tao_count = pow(10,int(log10(tao) + 2));
     int t=0;
     float avgH;
+    uniform_real_distribution<double> distribution_d(0.0, 1.0);
 
     ///---setup iinitial population
     for(int m= 0; m<int(N_demes/2);m++){
@@ -207,7 +208,7 @@ int main (int argc, char * argv[]){
             //int r_phage = V_deme[r_deme][r_ind];
             int mig_deme;
             
-            uniform_real_distribution<double> distribution_d(0.0, 1.0);
+            
             double p_mig = distribution_d(e);
             //cout<<r_deme<<endl;
 
@@ -257,10 +258,10 @@ int main (int argc, char * argv[]){
             
 
             //infection
-            uniform_int_distribution<int> distribution_indi(0, total_phage-1);
-            int phage_indi = distribution_indi(e) +1;
-            uniform_real_distribution<double> distribution_di(0.0, 1.0);
-            double p_inf = distribution_di(e);
+            //uniform_int_distribution<int> distribution_indi(0, total_phage-1);
+            int phage_indi = distribution_ind(e) +1;
+            //uniform_real_distribution<double> distribution_di(0.0, 1.0);
+            double p_inf = distribution_d(e);
             int phage_cnti=0;
             int phage_foundi=0;
             int r_demei;
@@ -479,14 +480,43 @@ int main (int argc, char * argv[]){
             //reset bacteria
             for(int m=0; m< N_demes;m++){
                 for(int nb=0; nb< K_bac;nb++){
-                        uniform_real_distribution<double> distribution_dr(0.0, 1.0);
-                        float p_all = distribution_dr(e);
+                        //uniform_real_distribution<double> distribution_dr(0.0, 1.0);
+                        float p_all = distribution_d(e);
 
 
                         B_deme[m][nb] = B_deme[m][nb]*int(round(p_all)+1);
+                        //cout<< round(p_all)+1<<endl;
                     
 
                 }
+
+            }
+
+            cout<<"Saving profiles\n";
+            for (int m = 0; m < N_demes; m++){
+                
+
+
+                fprofp << m <<" " <<V_deme[m][0]<<" " <<V_deme[m][1] <<endl;
+
+                int B_health=0;
+                int B_inf=0;
+                int B_lys=0;
+
+                for(int n = 0; n < K_bac; n++){
+                    if (B_deme[m][n]==0){
+                        B_health+=1;
+                    }
+                    if (B_deme[m][n]>0){
+                        B_inf+=1;
+                    }
+                    if (B_deme[m][n]==-1){
+                        B_lys+=1;
+                    }   
+                }
+                fprofb <<m<<" "<< B_health <<" " <<B_inf<<" " <<B_lys <<endl;
+
+
 
             }
 
@@ -502,33 +532,7 @@ int main (int argc, char * argv[]){
     
 
 
-    cout<<"Saving profiles\n";
-    for (int m = 0; m < N_demes; m++){
-        
-
-
-        fprofp << m <<" " <<V_deme[m][0]<<" " <<V_deme[m][1] <<endl;
-
-        int B_health=0;
-        int B_inf=0;
-        int B_lys=0;
-
-        for(int n = 0; n < K_bac; n++){
-            if (B_deme[m][n]==0){
-                B_health+=1;
-            }
-            if (B_deme[m][n]>0){
-                B_inf+=1;
-            }
-            if (B_deme[m][n]==-1){
-                B_lys+=1;
-            }   
-        }
-        fprofb <<m<<" "<< B_health <<" " <<B_inf<<" " <<B_lys <<endl;
-
-
-
-    }
+    
     for(int dt=0; dt <int(t/record_time);dt++){
 
     	fpop <<dt*record_time<< " " << pop_hist[dt] <<endl;

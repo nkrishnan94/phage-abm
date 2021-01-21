@@ -20,10 +20,10 @@ const int N_demes = 100; // number of demes in comiving frame
 const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
 float tao = 50; // lysis time in simulation steps
-int beta = 20; //number of phage released with lysis
+int beta = 50; //number of phage released with lysis
 float M = 1; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
-unsigned int N_gen = 1*pow(10,6); // Run time in generations
+unsigned int N_gen = 5*pow(10,8); // Run time in generations
 int samp_id=0;
 float alpha = 1;
 
@@ -137,6 +137,7 @@ int main (int argc, char * argv[]){
     int total_bac_inf= K_bac*int(N_demes/2);
     //int tao = tao_*K_bac*beta;
     long tao_count = pow(10,int(log10(tao) + 2));
+    uniform_real_distribution<double> distribution_d(0.0, 1.0);
 
 
 
@@ -144,6 +145,8 @@ int main (int argc, char * argv[]){
     for(int m= 0; m<int(N_demes/2);m++){
 
 		V_deme[m][0]=100;
+
+
 
 		//V_deme[m][1]=10;
 
@@ -200,7 +203,7 @@ int main (int argc, char * argv[]){
             //int r_phage = V_deme[r_deme][r_ind];
             int mig_deme;
             
-            uniform_real_distribution<double> distribution_d(0.0, 1.0);
+            //uniform_real_distribution<double> distribution_d(0.0, 1.0);
             double p_mig = distribution_d(e);
             //cout<<r_deme<<endl;
 
@@ -250,10 +253,10 @@ int main (int argc, char * argv[]){
             
 
             //infection
-            uniform_int_distribution<int> distribution_indi(0, total_phage-1);
-            int phage_indi = distribution_indi(e) +1;
-            uniform_real_distribution<double> distribution_di(0.0, 1.0);
-            double p_inf = distribution_di(e);
+            //uniform_int_distribution<int> distribution_indi(0, total_phage-1);
+            int phage_indi = distribution_ind(e) +1;
+            //uniform_real_distribution<double> distribution_d(0.0, 1.0);
+            double p_inf = distribution_d(e);
             int phage_cnti=0;
             int phage_foundi=0;
             int r_demei;
