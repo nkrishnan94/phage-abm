@@ -15,17 +15,17 @@
 
 
 //define key parameters
-const int N_demes = 100; // number of demes in comiving frame
+const int N_demes = 300; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
 const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-float tao = 50; // lysis time in simulation steps
+float tao = 100000; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
-float M = 1; // Migration rate
+float M = .25; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
-unsigned int N_gen = 5*pow(10,8); // Run time in generations
+unsigned int N_gen = 1*pow(10,7); // Run time in generations
 int samp_id=0;
-float alpha = 1;
+float alpha = 0.001;
 
 
 
@@ -104,7 +104,7 @@ int main (int argc, char * argv[]){
     string profpName = "profile_phage_Nb" + strKb.str()  + "_migr" + strM.str()  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+ termination;
     string profbName = "profile_bac_Nb" + strKb.str()  + "_migr" + strM.str() +"+_tau"+strT.str()+"_alpha"+strA.str() +"_ID"+strI.str()+ termination;
     string logName = "log_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+  termination;
-    string folder = "test/";
+    string folder = "";
     flog.open(folder+logName);
     //fhet.open(hetName);
     fpop.open(folder+velName);
@@ -148,7 +148,7 @@ int main (int argc, char * argv[]){
 
 
 
-		//V_deme[m][1]=10;
+		V_deme[m][1]=100;
 
     }
 
@@ -439,7 +439,7 @@ int main (int argc, char * argv[]){
 
             
             }
-            cout<<"timestep: "<< t<<" Het: "<< calcHet(V_deme)<<endl;
+            cout<<"timestep: "<< t<<" Het: "<< calcHet(V_deme)<< "total pop: "<< total_phage<< "demes until shift: "<< shift<<endl;
 			pop_hist.push_back(shiftpop+total_phage);
 			//het_hist.push_back(calcHet(V_deme));
 		}

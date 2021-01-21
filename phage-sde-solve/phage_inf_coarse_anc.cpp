@@ -10,14 +10,15 @@
 #include <random>
 #include <ctime> 
 #include <gsl/gsl_rng.h>
+#include <algorithm>
 #include <gsl/gsl_randist.h>
 
 
 
 //define key parameters
-const int N_demes = 100; // number of demes in comiving frame
+const int N_demes = 300; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=100; // deme size for bacteria
+const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
 float tao = 200; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
@@ -25,8 +26,8 @@ float M = .25; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,3); // Run time in generations
 int samp_id=0;
-float alpha = 0.05;
-unsigned int assign_gene_time = 1*pow(10,4); // Run time in generations
+float alpha = 0.0001;
+unsigned int assign_gene_time = 5*pow(10,4); // Run time in generations
 
 
 
@@ -81,6 +82,7 @@ int main (int argc, char * argv[]){
     
     //----------initialize time-------------
 	time_t time_start;
+    clock_t c_init = clock(); // Initial time; used to output run time
 	struct tm * timeinfo;
 	char buffer [80];
     time (&time_start);
@@ -107,13 +109,13 @@ int main (int argc, char * argv[]){
     string profbName = "profile_bac_Nb" + strKb.str()  + "_migr" + strM.str() +"+_tau"+strT.str()+"_alpha"+strA.str() +"_ID"+strI.str()+ termination;
     string logName = "log_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+  termination;
     string markName = "markers_" + strKb.str()  + "_migr" + strM.str() + "_B" +strB.str()+"+_tau"+strT.str()+"_alpha"+strA.str()+ "_ID"+strI.str()+termination;
-    string folder = "";
+    string folder = "anc_data_sde/";
     flog.open(folder+logName);
     //fhet.open(hetName);
     fpop.open(folder+velName);
     fprofp.open(folder+profpName);
     fprofb.open(folder+profbName);
-    fmark.open(folder+markName);
+    //fmark.open(folder+markName);
 
 
     /// ---------------setup RNG-----------------
@@ -126,7 +128,7 @@ int main (int argc, char * argv[]){
 	//gsl_rng_set(r, sysRandom);
 	int seed =3133;
 	int tRand = time(NULL);
-	mt19937 e(tRand);
+	mt19937 e(samp_id);
 
 	///------additional parameters
 	long B_deme[N_demes][K_bac] = {{0}};// Keep track of Bacteria -> Healthy, infected, lysed
@@ -135,9 +137,9 @@ int main (int argc, char * argv[]){
     long phage_abs_count[N_demes] = {0};
     double shiftDemes = 0; // Number of demes shifted
     int shiftpop=0;
-    int record_time=500;
+    int record_time=5000;
     vector <double> pop_hist;
-    vector <double> mark_hist;
+    //vector <double> mark_hist;
     //vector <double> het_hist;
     int total_phage = int(N_demes/2)*100;
     int total_bac_no_inf=0;
@@ -155,11 +157,11 @@ int main (int argc, char * argv[]){
     ///---setup iinitial population
     for(int m= 0; m<int(N_demes/2);m++){
 
-		V_deme[m][0]=100;
+		V_deme[m][0]=200;
 
 
 
-		V_deme[m][1]=100;
+		V_deme[m][1]=0;
 
     }
 
@@ -184,7 +186,7 @@ int main (int argc, char * argv[]){
             V_deme_aux[0][n] = V_deme[0][n];
 
 
-            V_deme[0][n] = int((1-M/2)* V_deme[0][n] + (M/2)*V_deme[1][n]);
+            V_deme[0][n] = int(round((1-M/2)* V_deme[0][n] + (M/2)*V_deme[1][n]));
             deme_tot+=V_deme[0][n];
 
             
@@ -236,7 +238,8 @@ int main (int argc, char * argv[]){
 
 
 
-                random_shuffle(begin(phage_abs0), end(phage_abs0));
+
+                shuffle(begin(phage_abs0), end(phage_abs0),default_random_engine(samp_id));
                 int r_phagei;
 
                 
@@ -309,7 +312,7 @@ int main (int argc, char * argv[]){
                 V_deme_aux[m][n] = V_deme[m][n];
 
 
-                V_deme[m][n] = int((1-M)* V_deme[m][n] + (M/2)*V_deme[m+1][n] + (M/2)*V_deme_aux[m-1][n] );
+                V_deme[m][n] = int(round((1-M)* V_deme[m][n] + (M/2)*V_deme[m+1][n] + (M/2)*V_deme_aux[m-1][n]) );
 
                 deme_tot+=V_deme[m][n];
 
@@ -353,7 +356,6 @@ int main (int argc, char * argv[]){
                         for(int v=last_mark_count; v<(mark_count);v++){
                             phage_abs[v]=n;
 
-                            
 
                         }
                     
@@ -368,7 +370,7 @@ int main (int argc, char * argv[]){
 
 
 
-                    random_shuffle(begin(phage_abs), end(phage_abs));
+                    shuffle(begin(phage_abs), end(phage_abs),default_random_engine(samp_id));
                     int r_phagei;
 
                     
@@ -624,7 +626,7 @@ int main (int argc, char * argv[]){
             cout<<"demes until shift"<< shift <<endl;
 
 			pop_hist.push_back(shiftpop+total_phage);
-            mark_hist.push_back(demes_alive);
+            //mark_hist.push_back(demes_alive);
 			//het_hist.push_back(calcHet(V_deme));
 		}
 
@@ -669,6 +671,7 @@ int main (int argc, char * argv[]){
                         org_tot+=V_deme[m][n];
 
                     }
+                    cout << org_tot;
                     if(org_tot>0){
                         if (fixed_found==1){
                             cout<<"ONLY ONE GENE ORIGIN SHOULD BE FOUND"<<endl;
@@ -681,6 +684,7 @@ int main (int argc, char * argv[]){
                     }
 
                 }
+                cout <<endl;
 
 
             }
@@ -692,7 +696,7 @@ int main (int argc, char * argv[]){
 
             cout<<"Saving profiles\n";
             for (int m = 0; m < N_demes; m++){
-                fprofp << m <<" "<<V_deme[m][0]<<endl;
+                fprofp << m <<" "<<V_deme[m][0]+V_deme[m][1]<<endl;
 
 
                 int B_health=0;
@@ -729,7 +733,7 @@ int main (int argc, char * argv[]){
 
                 }
                 V_deme[m][m]= deme_pop;
-                cout<<V_deme[m][m]<<endl;
+                //cout<<V_deme[m][m]<<endl;
 
 
 
@@ -776,7 +780,7 @@ int main (int argc, char * argv[]){
    for(int dt=0; dt <int(t/record_time);dt++){
 
     	fpop <<dt*record_time<< " " << pop_hist[dt] <<endl;
-        fmark<<dt*record_time<< " "<<mark_hist[dt]<<endl;
+        //fmark<<dt*record_time<< " "<<mark_hist[dt]<<endl;
     	//fhet <<t*record_time<< " " << het_hist[t] <<endl;
 
     }
@@ -785,11 +789,16 @@ int main (int argc, char * argv[]){
     ///final out put
     
     time_t time_end;
+    //clock_t c_init = clock(); // Initial time; used to output run time
+    clock_t c_fin = clock(); // Stop clock
     double run_time = difftime(time(&time_start), time(&time_end));
-    flog << "Number of generations, Migration rate, Number of demes, Start time, Elapsed run time (secs_), Fixed deme origin" << endl;
-    flog << N_gen << " "  << M << ", " << N_demes << time_start<< run_time <<", "<<fixed_marker <<endl;
-
-    cout << "Finished in " << t << " seconds \n";
+    //flog << "Lysis time, absorptions rate Migration rate, Number of demes, Start time, Elapsed run time (secs_), Fixed deme origin" << endl;
+    //flog << tao << " " <<alpha<< " "  << M << ", " << N_demes << time_start<< double(c_fin - c_init)/CLOCKS_PER_SEC<<", "<<fixed_marker <<endl;
+    flog << "Lysis time, absorptions rate Migration rate, Number of demes, Start time, Elapsed run time (secs_), Fixed deme origin" << endl;
+    flog << tao << " " <<alpha<< " "  << M << ", " << N_demes << time_start<< double(c_fin - c_init)/CLOCKS_PER_SEC<<", "<<fixed_marker <<endl;
+    cout << "Lysis time, absorptions rate Migration rate, Number of demes, Start time, Elapsed run time (secs_), Fixed deme origin" << endl;
+    cout << tao << " " <<alpha<< " "  << M << ", " << N_demes << time_start<< double(c_fin - c_init)/CLOCKS_PER_SEC<<", "<<fixed_marker <<endl;
+    cout << "Finished in " << double(c_fin - c_init)/CLOCKS_PER_SEC << " seconds \n";
 
     
 

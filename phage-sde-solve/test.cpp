@@ -17,14 +17,7 @@ int main(){
 
 	
 	using namespace std;
-	vector <int>  a(6,0);
-
-	random_shuffle(begin(a), end(a));
-
-	for(int i =0; i <6; i++){
-
-		cout<<a[i];
-	}
+	cout<< int(round(3.8))<<endl;
 
 
 	return 0;

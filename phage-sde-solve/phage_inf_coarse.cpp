@@ -15,17 +15,17 @@
 
 
 //define key parameters
-const int N_demes = 100; // number of demes in comiving frame
+const int N_demes = 300; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
 const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-float tao = 5; // lysis time in simulation steps
+float tao = 100; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
-float M = .25; // Migration rate
+float M = .5; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
-unsigned int N_gen = 1*pow(10,5); // Run time in generations
+unsigned int N_gen = 1*pow(10,2); // Run time in generations
 int samp_id=0;
-float alpha = .05;
+float alpha = 0;
 
 
 
@@ -80,6 +80,7 @@ int main (int argc, char * argv[]){
     
     //----------initialize time-------------
 	time_t time_start;
+    clock_t c_init = clock(); // Initial time; used to output run time
 	struct tm * timeinfo;
 	char buffer [80];
     time (&time_start);
@@ -131,7 +132,7 @@ int main (int argc, char * argv[]){
     long V_deme_aux[N_demes][2] = {{0}};
     double shiftDemes = 0; // Number of demes shifted
     int shiftpop=0;
-    int record_time=5000;
+    int record_time=10;
     vector <double> pop_hist;
     vector <double> het_hist;
     int total_phage = int(N_demes/2)*100;
@@ -146,11 +147,11 @@ int main (int argc, char * argv[]){
     ///---setup iinitial population
     for(int m= 0; m<int(N_demes/2);m++){
 
-		V_deme[m][0]=100;
+		V_deme[m][0]=1000;
 
 
 
-		V_deme[m][1]=100;
+		V_deme[m][1]=1000;
 
     }
 
@@ -172,8 +173,8 @@ int main (int argc, char * argv[]){
         aux_p0 =V_deme[m][0]; 
         aux_p1 =V_deme[m][1]; 
         //cout<<V_deme[0][1]<<endl;
-        V_deme[m][0] = int((1-M/2)* V_deme[m][0] + (M/2)*V_deme[m+1][0]);
-        V_deme[m][1] = int((1-M/2)* V_deme[m][1] + (M/2)*V_deme[m+1][1]);
+        V_deme[m][0] = int(round((1-M/2)* V_deme[m][0] + (M/2)*V_deme[m+1][0]));
+        V_deme[m][1] = int(round((1-M/2)* V_deme[m][1] + (M/2)*V_deme[m+1][1]));
 
 
         //absorption
@@ -264,8 +265,8 @@ int main (int argc, char * argv[]){
             hold1 = aux_p1;
             aux_p0 =V_deme[m][0]; 
             aux_p1 =V_deme[m][1]; 
-            V_deme[m][0] = int((1-M)* V_deme[m][0] + (M/2)*V_deme[m+1][0] + (M/2)*hold0);
-            V_deme[m][1] = int((1-M)* V_deme[m][1] + (M/2)*V_deme[m+1][1] + (M/2)*hold1);
+            V_deme[m][0] = int(round((1-M)* V_deme[m][0] + (M/2)*V_deme[m+1][0] + (M/2)*hold0));
+            V_deme[m][1] = int(round((1-M)* V_deme[m][1] + (M/2)*V_deme[m+1][1] + (M/2)*hold1));
             if (V_deme[m][0]+V_deme[m][1]>0){
                 //cout<<V_deme[m][0]+V_deme[m][1]<<endl;
                 //absorption
@@ -300,7 +301,7 @@ int main (int argc, char * argv[]){
                     for(int v=0; v<(a0+a1);v++){
                         r_phagei = phage_abs[v];
                         if (phage_abs[v]==0){
-                            cout<< phage_abs[v] <<endl;
+                            //cout<< phage_abs[v] <<endl;
                             
 
                         }
@@ -492,11 +493,12 @@ int main (int argc, char * argv[]){
     ///final out put
     
     time_t time_end;
+    clock_t c_fin = clock(); // Stop clock
     double run_time = difftime(time(&time_start), time(&time_end));
     flog << "Number of generations, Migration rate, Number of demes, Start time, Elapsed run time (secs_" << endl;
-    flog << N_gen << " "  << M << ", " << N_demes << time_start<< run_time <<endl;
+    flog << N_gen << " "  << M << ", " << N_demes << time_start<< double(c_fin - c_init)/CLOCKS_PER_SEC <<endl;
 
-    cout << "Finished in " << run_time << " seconds \n";
+    cout << "Finished in " << double(c_fin - c_init)/CLOCKS_PER_SEC << " seconds \n";
 
     
 

@@ -17,7 +17,7 @@
 //define key parameters
 const int N_demes = 100; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=25; // deme size for bacteria
+const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
 float tao = 200000; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
