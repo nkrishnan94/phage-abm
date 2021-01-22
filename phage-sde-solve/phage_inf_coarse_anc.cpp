@@ -16,7 +16,7 @@
 
 
 //define key parameters
-const int N_demes = 300; // number of demes in comiving frame
+const int N_demes = 200; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
 const int K_bac=50; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
@@ -26,7 +26,7 @@ float M = .25; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,3); // Run time in generations
 int samp_id=0;
-float alpha = 0.0001;
+float alpha = 0.03;
 unsigned int assign_gene_time = 5*pow(10,4); // Run time in generations
 
 

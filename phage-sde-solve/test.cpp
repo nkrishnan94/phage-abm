@@ -17,7 +17,7 @@ int main(){
 
 	
 	using namespace std;
-	cout<< int(round(3.8))<<endl;
+	cout<< 3.4 -3<<endl;
 
 
 	return 0;
