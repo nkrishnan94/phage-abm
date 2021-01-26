@@ -206,15 +206,23 @@ int main (int argc, char * argv[]){
         }
 
         if ((V_deme[m][0]+V_deme[m][1]>0)&& (Bempty>0)){
-            binomial_distribution<int> distribution_0( V_deme[m][0] +V_deme[m][1] ,alpha* float(Bempty)/float(K_bac) );
+            
+            
+
+            binomial_distribution<int> distribution_0( (V_deme[m][0] +V_deme[m][1])*Bempty ,alpha/ K_bac);
             
 
             int atot = distribution_0(e);
+
             atot=min(atot,Bempty);
+
+
+
 
             binomial_distribution<int> distribution_1( atot,float(V_deme[m][0] / float(V_deme[m][0]+V_deme[m][1]) ) );
             int a0 = distribution_1(e);
             int a1 = atot-a0;
+
            //cout<<a0<<endl;
             int Babs = 0;
             for (int n=(K_bac - Bempty-1);n<(K_bac - Bempty+a0);n++){
@@ -352,7 +360,7 @@ int main (int argc, char * argv[]){
 
             if ((V_deme[m][0]+V_deme[m][1]>0)&& (Bempty>0)){
 
-                binomial_distribution<int> distribution_0( V_deme[m][0] +V_deme[m][1] ,alpha* float(Bempty)/float(K_bac) );
+                binomial_distribution<int> distribution_0( (V_deme[m][0] +V_deme[m][1])*Bempty ,alpha/ K_bac);
                 
 
                 int atot = distribution_0(e);

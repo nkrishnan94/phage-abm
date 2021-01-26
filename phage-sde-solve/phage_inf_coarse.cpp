@@ -17,15 +17,16 @@
 //define key parameters
 const int N_demes = 200; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=50; // deme size for bacteria
+const int K_bac=100; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
 float tao = 100; // lysis time in simulation steps
-int beta = 50; //number of phage released with lysis
+int beta = 100; //number of phage released with lysis
 float M = .25; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
-unsigned int N_gen = 1*pow(10,4); // Run time in generations
+unsigned int N_gen = 1*pow(10,5); // Run time in generations
 int samp_id=0;
-float alpha = 0;
+float alpha = 0.01;
+
 
 
 
@@ -88,7 +89,7 @@ int main (int argc, char * argv[]){
 	strftime(buffer,80,"%F-%H-%M-%S", timeinfo);
 
 	//-------------intialize data files----------------------------
-    ofstream fpop, fhet, fprofp,fprofb, flog; //filenames
+    ofstream fpop, fhet, fprofp,fprofb, flog,fabs; //filenames
     ostringstream strTime, strKb, strM,strB,strT, strDeme,strA,strI; //paramater strings
     strKb << K_bac;
     strTime << buffer;
@@ -106,12 +107,14 @@ int main (int argc, char * argv[]){
     string profpName = "profile_phage_Nb" + strKb.str()  + "_migr" + strM.str()  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+ termination;
     string profbName = "profile_bac_Nb" + strKb.str()  + "_migr" + strM.str() +"+_tau"+strT.str()+"_alpha"+strA.str() +"_ID"+strI.str()+ termination;
     string logName = "log_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+  termination;
+    string absName = "abs_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+  termination;
     string folder = "";
     flog.open(folder+logName);
     //fhet.open(hetName);
     fpop.open(folder+velName);
     fprofp.open(folder+profpName);
     fprofb.open(folder+profbName);
+    fabs.open(folder+absName);
 
 
     /// ---------------setup RNG-----------------
@@ -135,6 +138,7 @@ int main (int argc, char * argv[]){
     int record_time=1000;
     vector <double> pop_hist;
     vector <double> het_hist;
+    vector <double>abs_hist;
     int total_phage = int(N_demes/2)*100;
     int total_bac_no_inf=0;
     int total_bac_inf= K_bac*int(N_demes/2);
@@ -164,10 +168,16 @@ int main (int argc, char * argv[]){
     int aux_p1;
     int hold0;
     int hold1;
+    float absAllTot;
+    int acnt;
 
     for (unsigned int t = 0; t < N_gen; t++){
+        //int acnt=0;
+        //float absAllTot=0;
+        
         //cout<<"hi"<<endl;
         int m=0;
+        
 
         //first deme
         aux_p0 =V_deme[m][0]; 
@@ -184,56 +194,61 @@ int main (int argc, char * argv[]){
 
         //cout <<alpha*(V_deme[m][0]/ (V_deme[m][0]+V_deme[m][1]))<<endl;
         //cout<<V_deme[m][0]<<endl;
-        if (V_deme[m][0]+V_deme[m][1]>0){
-            binomial_distribution<int> distribution_0( V_deme[m][0],alpha*float(V_deme[m][0]/ float(V_deme[m][0]+V_deme[m][1]) ) );
-            binomial_distribution<int> distribution_1( V_deme[m][1],alpha*float(V_deme[m][1]/ float(V_deme[m][0]+V_deme[m][1]) ) );
 
-            int a0 = distribution_0(e);
-            int a1 = distribution_1(e);
-            //cout<<a0<<endl;
+        int Bempty =0;
+        for (int n=0;n<K_bac;n++){
+            if (B_deme[m][n]==0){
+                if(B_deme[m][n]==0){
+                    Bempty+=1;
+                }
+ 
+            }
 
+        }
+
+
+        if ((V_deme[m][0]+V_deme[m][1]>0)&& (Bempty>0)){
+            acnt+=1;
+
+            binomial_distribution<int> distribution_0( (V_deme[m][0] +V_deme[m][1])*Bempty ,alpha/ K_bac);
 
             
-            int bac_ind;
 
-            vector <int> phage_abs0((a0+a1),0);
-            if (phage_abs0.size()>0){
+            int atot = distribution_0(e);
 
-                for(int v0=0; v0<a0;v0++){
-                    phage_abs0[v0]=0;
+            atot=min(atot,Bempty);
+
+            absAllTot+=float(atot)/float(V_deme[m][0] +V_deme[m][1]);
+
+
+
+            binomial_distribution<int> distribution_1( atot,float(V_deme[m][0] / float(V_deme[m][0]+V_deme[m][1]) ) );
+            int a0 = distribution_1(e);
+            int a1 = atot-a0;
+           //cout<<a0<<endl;
+            int Babs = 0;
+            for (int n=(K_bac - Bempty-1);n<(K_bac - Bempty+a0);n++){
+                if (B_deme[m][n] ==0){
+                    B_deme[m][n] = (1) * tao_count;
+                    Babs+=1;
 
                 }
-                for(int v1=a0; v1<a0+a1;v1++){
-                    phage_abs0[v1]=1;
+            }
 
-                }
-                random_shuffle(begin(phage_abs0), end(phage_abs0));
-                int r_phagei;
+            for (int n=(K_bac - Bempty+a0-1);n<(K_bac -Bempty+a0+a1);n++){
+                if (B_deme[m][n] ==0){
+                    B_deme[m][n] = (2) * tao_count;
+                    Babs+=1;
 
+                } 
+            }
+            if (Babs<(a0+a1)){
+
+
+                cout<<"Timestep: "<< t << " Deme: "<< m<<"Bempty: "<< Bempty<< " Bac. Index: " <<(a0+a1)<<endl;
+                cout <<"NO UNINFECTED BACTERIA AVAILABLE FOR ABSORPTION" <<t <<endl;
+                exit(EXIT_FAILURE);
                 
-
-                for(int v=0; v<(a0+a1);v++){
-                    r_phagei = phage_abs0[v];
-                    int B_found=0;
-                    for (int n=0;n<K_bac;n++){
-                        if (B_found==0){
-                            if(B_deme[m][n]==0){
-                                B_found=1;
-                                bac_ind=n;
-                            }
-
-                        }
-
-                    }
-
-                    if ((B_found==1)&&(V_deme[m][r_phagei]>0)){
-                        B_deme[m][bac_ind] = (1 + r_phagei) * tao_count;
-                            
-                        V_deme[m][r_phagei]-=1;
-
-                    }
-                }
-
             }
         }
         
@@ -264,6 +279,7 @@ int main (int argc, char * argv[]){
     
         for(int m=1;m<N_demes-2;m++){
             
+            
             hold0 = aux_p0;
             hold1 = aux_p1;
             aux_p0 =V_deme[m][0]; 
@@ -275,66 +291,62 @@ int main (int argc, char * argv[]){
 
             V_deme[m][0] = int(M0) + distribution_M0(e);
             V_deme[m][1] = int(M1) + distribution_M1(e);
-            if (V_deme[m][0]+V_deme[m][1]>0){
-                //cout<<V_deme[m][0]+V_deme[m][1]<<endl;
-                //absorption
-                binomial_distribution<int> distribution_0( V_deme[m][0],alpha*float(V_deme[m][0]/ float(V_deme[m][0]+V_deme[m][1]) ) );
-                binomial_distribution<int> distribution_1( V_deme[m][1],alpha*float(V_deme[m][1]/ float(V_deme[m][0]+V_deme[m][1]) ) );
-                int a0 = distribution_0(e);
-                int a1 = distribution_1(e);
-                //cout << alpha*(V_deme[m][0]/ (V_deme[m][0]+V_deme[m][1]) )<< endl;
+            //cout <<alpha*(V_deme[m][0]/ (V_deme[m][0]+V_deme[m][1]))<<endl;
+        //cout<<V_deme[m][0]<<endl;
 
+            int Bempty =0;
+            for (int n=0;n<K_bac;n++){
+                if (B_deme[m][n]==0){
+                    if(B_deme[m][n]==0){
+                        Bempty+=1;
+                    }
+     
+                }
+
+            }
+
+            if ((V_deme[m][0]+V_deme[m][1]>0)&& (Bempty>0)){
+                binomial_distribution<int> distribution_0( (V_deme[m][0] +V_deme[m][1])*Bempty , alpha/K_bac);
+
+                acnt+=1;
                 
-                int bac_ind;
 
-                
-                vector <int> phage_abs((a0+a1),0);
-                if (phage_abs.size()){
-                    //cout <<"absorption"<<endl;
-                    for(int v0=0; v0<a0;v0++){
-                    phage_abs[v0]=0;
+                int atot = distribution_0(e);
+                atot=min(atot,Bempty);
+
+                absAllTot+=float(atot)/float(V_deme[m][0] +V_deme[m][1]);
+                //cout<< absAllTot<<endl;
+                //cout << (V_deme[m][0] +V_deme[m][1])<<" "<<Bempty<< " "<<(V_deme[m][0] +V_deme[m][1])*Bempty *(alpha/K_bac)<<endl;
+                //cout<<Bempty<<" " <<atot<<endl;
+                //cout<< float(atot)/float(V_deme[m][0] +V_deme[m][1])<<endl;
+
+                binomial_distribution<int> distribution_1( atot,float(V_deme[m][0] / float(V_deme[m][0]+V_deme[m][1]) ) );
+                int a0 = distribution_1(e);
+                int a1 = atot-a0;
+               //cout<<a0<<endl;
+                int Babs = 0;
+                for (int n=(K_bac - Bempty-1);n<(K_bac - Bempty+a0);n++){
+                    if (B_deme[m][n] ==0){
+                        B_deme[m][n] = (1) * tao_count;
+                        Babs+=1;
 
                     }
-                    for(int v1=a0; v1<a0+a1;v1++){
-                        phage_abs[v1]=1;
+                }
 
-                    }
-                    random_shuffle(begin(phage_abs), end(phage_abs));
-                    int r_phagei;
-                    if ((a0+a1)>0){
-                        //cout<<(a0+a1)<<endl;
+                for (int n=(K_bac - Bempty+a0-1);n<(K_bac -Bempty+a0+a1);n++){
+                    if (B_deme[m][n] ==0){
+                        B_deme[m][n] = (2) * tao_count;
+                        Babs+=1;
 
-                    }
-
-                    for(int v=0; v<(a0+a1);v++){
-                        r_phagei = phage_abs[v];
-                        if (phage_abs[v]==0){
-                            //cout<< phage_abs[v] <<endl;
-                            
-
-                        }
-                        int B_found=0;
-                        for (int n=0;n<K_bac;n++){
-                            
-                            if (B_found==0){
-                                if(B_deme[m][n]==0){
-                                    B_found=1;
-                                    bac_ind=n;
-                                }
-
-                            }
-
-                        }
-
-                        if ((B_found==1)&&(V_deme[m][r_phagei]>0)){
-                            B_deme[m][bac_ind] = (1 + r_phagei) * tao_count;
-                                
-                            V_deme[m][r_phagei]-=1;
-
-                        }
-                    }
+                    } 
+                }
+                if (Babs<(a0+a1)){
 
 
+                    cout<<"Timestep: "<< t << " Deme: "<< m<<"Bempty: "<< Bempty<< " Bac. Index: " <<(a0+a1)<<endl;
+                    cout <<"NO UNINFECTED BACTERIA AVAILABLE FOR ABSORPTION" <<t <<endl;
+                    exit(EXIT_FAILURE);
+                    
                 }
             }
             
@@ -371,6 +383,7 @@ int main (int argc, char * argv[]){
 		total_phage=0;
 		int last_deme=0;
 		for(int m=0;m<N_demes;m++){
+            
 
 			total_phage+=V_deme[m][0]+V_deme[m][1];
 			if (V_deme[m][0]+V_deme[m][1]>0){
@@ -451,15 +464,21 @@ int main (int argc, char * argv[]){
 
                 }
                 cout<<total_deme <<" ";
+                
+
 
             
             }
 
             cout<<"timestep: "<< t<<" Het: "<< calcHet(V_deme)<< "total pop "<< total_phage<<endl;
             cout<<"demes until shift"<< shift <<endl;
-			pop_hist.push_back(shiftpop+total_phage);
+			pop_hist.push_back(total_phage);
+            abs_hist.push_back(absAllTot/acnt);
 			het_hist.push_back(calcHet(V_deme));
+
 		}
+        absAllTot=0;
+        acnt=0;
 
 	}
 	
@@ -493,7 +512,8 @@ int main (int argc, char * argv[]){
     for(int dt=0; dt <int(N_gen/record_time);dt++){
 
     	fpop <<dt*record_time<< " " << pop_hist[dt] <<endl;
-    	//fhet <<t*record_time<< " " << het_hist[t] <<endl;
+        fabs <<dt*record_time<< " " << abs_hist[dt] <<endl;
+    	fhet <<dt*record_time<< " " << het_hist[dt] <<endl;
 
     }
 
