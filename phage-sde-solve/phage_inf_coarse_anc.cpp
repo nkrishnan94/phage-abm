@@ -25,7 +25,7 @@ int beta = 50; //number of phage released with lysis
 float M = .25; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,3); // Run time in generations
-int samp_id=0;
+int samp_id=1;
 float alpha = 0.03;
 unsigned int assign_gene_time = 5*pow(10,4); // Run time in generations
 
@@ -38,6 +38,7 @@ unsigned int assign_gene_time = 5*pow(10,4); // Run time in generations
 
 
 /*float calcHet(long arr [N_demes][N_demes]){
+
 
 	double cnt =  0 ;
 	long double H = 0.0;
@@ -181,12 +182,17 @@ int main (int argc, char * argv[]){
       
         int deme_tot=0;
 
+
         for(int n=0;n<N_mark;n++){
             hold0= V_deme_aux[0][n];
             V_deme_aux[0][n] = V_deme[0][n];
 
+            float M0 = (1-M/2)* V_deme[0][n] + (M/2)*V_deme[1][n];
+            binomial_distribution<int> distribution_M0( 1,float(M0 - int(M0) ));
 
-            V_deme[0][n] = int(round((1-M/2)* V_deme[0][n] + (M/2)*V_deme[1][n]));
+
+
+            V_deme[0][n] = int(M0) + distribution_M0(e);
             deme_tot+=V_deme[0][n];
 
             
@@ -310,9 +316,12 @@ int main (int argc, char * argv[]){
             for(int n=0;n<N_mark;n++){
                 //hold0 = V_deme_aux[m-1][n];
                 V_deme_aux[m][n] = V_deme[m][n];
+                float M0 = (1-M)* V_deme[m][n] + (M/2)*V_deme[m+1][n] + (M/2)*V_deme_aux[m-1][n];
+                binomial_distribution<int> distribution_M0( 1,float(M0 - int(M0) ));
 
 
-                V_deme[m][n] = int(round((1-M)* V_deme[m][n] + (M/2)*V_deme[m+1][n] + (M/2)*V_deme_aux[m-1][n]) );
+
+                V_deme[m][n] =  int(M0) + distribution_M0(e);
 
                 deme_tot+=V_deme[m][n];
 
@@ -622,7 +631,7 @@ int main (int argc, char * argv[]){
             }
             cout<<endl;
 
-            cout<<"timestep: "<< t<< "total pop "<< total_phage<<endl;
+            cout<<"timestep: "<< t<< "total pop "<< shiftpop+total_phage<<endl;
             cout<<"demes until shift"<< shift <<endl;
 
 			pop_hist.push_back(shiftpop+total_phage);

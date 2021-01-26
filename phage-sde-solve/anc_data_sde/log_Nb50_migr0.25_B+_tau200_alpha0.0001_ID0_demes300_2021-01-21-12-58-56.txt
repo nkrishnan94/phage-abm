@@ -1,2 +1,0 @@
-Lysis time, absorptions rate Migration rate, Number of demes, Start time, Elapsed run time (secs_), Fixed deme origin
-200 0.0001 0.25, 300161125195822.7091, 157
