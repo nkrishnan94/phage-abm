@@ -1,2 +1,0 @@
-Number of generations, Migration rate, Number of demes, Start time, Elapsed run time (secs_
-100000 0.25, 200161169251811.1983
