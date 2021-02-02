@@ -25,7 +25,7 @@ float M = .25; // Migration rate
 int prof_hist =  0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,4); // Run time in generations
 int samp_id=0;
-float alpha = .03;
+float alpha = 0.01;
 unsigned int assign_gene_time = 5*pow(10,4); // Run time in generations
 
 
@@ -134,7 +134,7 @@ int main (int argc, char * argv[]){
     long V_deme_aux[N_demes][2] = {{0}};
     double shiftDemes = 0; // Number of demes shifted
     int shiftpop=0;
-    int record_time_het=20;
+    int record_time_het=1;
     int record_time_pop=5000;
     vector <double> pop_hist;
     vector <double> het_hist;
@@ -171,7 +171,7 @@ int main (int argc, char * argv[]){
     int hold1;
 
     //for (unsigned int t = 0; t < N_gen; t++){
-    while((avgH>.01)||(t<1.1*assign_gene_time ) ){
+    while((avgH>.01)||(t<1.05*assign_gene_time ) ){
         //cout<<"hi"<<endl;
         int m=0;
 

@@ -17,9 +17,9 @@
 //define key parameters
 const int N_demes = 200; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=100; // deme size for bacteria
+const int K_bac=500; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-float tao = 100; // lysis time in simulation steps
+float tao = 5; // lysis time in simulation steps
 int beta = 100; //number of phage released with lysis
 float M = .25; // Migration rate
 int prof_hist = 0; // flag to keep track of history profile history through time, off by default
@@ -135,7 +135,7 @@ int main (int argc, char * argv[]){
     long V_deme_aux[N_demes][2] = {{0}};
     double shiftDemes = 0; // Number of demes shifted
     int shiftpop=0;
-    int record_time=1000;
+    int record_time=5000;
     vector <double> pop_hist;
     vector <double> het_hist;
     vector <double>abs_hist;
@@ -211,6 +211,7 @@ int main (int argc, char * argv[]){
             acnt+=1;
 
             binomial_distribution<int> distribution_0( (V_deme[m][0] +V_deme[m][1])*Bempty ,alpha/ K_bac);
+            cout<<alpha/K_bac<<endl;
 
             
 
@@ -307,6 +308,7 @@ int main (int argc, char * argv[]){
 
             if ((V_deme[m][0]+V_deme[m][1]>0)&& (Bempty>0)){
                 binomial_distribution<int> distribution_0( (V_deme[m][0] +V_deme[m][1])*Bempty , alpha/K_bac);
+                cout<<alpha/K_bac<<endl;
 
                 acnt+=1;
                 
@@ -318,6 +320,7 @@ int main (int argc, char * argv[]){
                 //cout<< absAllTot<<endl;
                 //cout << (V_deme[m][0] +V_deme[m][1])<<" "<<Bempty<< " "<<(V_deme[m][0] +V_deme[m][1])*Bempty *(alpha/K_bac)<<endl;
                 //cout<<Bempty<<" " <<atot<<endl;
+                
                 //cout<< float(atot)/float(V_deme[m][0] +V_deme[m][1])<<endl;
 
                 binomial_distribution<int> distribution_1( atot,float(V_deme[m][0] / float(V_deme[m][0]+V_deme[m][1]) ) );
