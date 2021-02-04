@@ -17,16 +17,19 @@
 //define key parameters
 const int N_demes = 200; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
-const int K_bac=50; // deme size for bacteria
+const int K_bac=100; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-float tao = 50; // lysis time in simulation steps
+float tao = 800; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
 float M = .25; // Migration rate
 int prof_hist =  0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,4); // Run time in generations
 int samp_id=0;
-float alpha = 0.01;
+float alpha = 0.005;
 unsigned int assign_gene_time = 5*pow(10,4); // Run time in generations
+//int mig_det_flag = 0;  // =1 binomial sampling done to ddetermine proportion from each allele migaratoin; =0, done determinisitally for total and each allele. 
+//int round_flag = 1; // =1, migration proportions are simply rounded down, otherwise binomieal sampling done to determine whether rounding occurs
+
 
 
 
@@ -107,8 +110,8 @@ int main (int argc, char * argv[]){
     string profpName = "profile_phage_Nb" + strKb.str()  + "_migr" + strM.str()  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+ termination;
     string profbName = "profile_bac_Nb" + strKb.str()  + "_migr" + strM.str() +"+_tau"+strT.str()+"_alpha"+strA.str() +"_ID"+strI.str()+ termination;
     string logName = "log_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+  termination;
-    string folder = "het_data_sde/";
-    //string folder = "";
+    //string folder = "het_data_sde/";
+    string folder = "";
     flog.open(folder+logName);
     fhet.open(folder+hetName);
     fpop.open(folder+velName);
@@ -171,28 +174,35 @@ int main (int argc, char * argv[]){
     int hold1;
 
     //for (unsigned int t = 0; t < N_gen; t++){
-    while((avgH>.01)||(t<1.05*assign_gene_time ) ){
+    while((avgH>.0001)||(t<1.1*assign_gene_time) ){
         //cout<<"hi"<<endl;
         int m=0;
 
 
 
-        //first deme
+        //first demem
         aux_p0 =V_deme[m][0]; 
         aux_p1 =V_deme[m][1]; 
         //cout<<V_deme[0][1]<<endl;
+
+        //float M0 =((1-M/2)* V_deme[m][0] + (M/2)*V_deme[m+1][0]);
+        //float M1 = ((1-M/2)* V_deme[m][1] + (M/2)*V_deme[m+1][1]);
         float M0 =((1-M/2)* V_deme[m][0] + (M/2)*V_deme[m+1][0]);
         float M1 = ((1-M/2)* V_deme[m][1] + (M/2)*V_deme[m+1][1]);
-        binomial_distribution<int> distribution_M0( 1,float(M0 - int(M0) ));
-        binomial_distribution<int> distribution_M1( 1,float(M1 - int(M1) ));
-        V_deme[m][0] = int(M0) + distribution_M0(e);
-        V_deme[m][1] = int(M1) + distribution_M1(e);
+        int Mtot = int(M0+M1);
+        //cout<<M0/(M0+M1) <<endl;
+        binomial_distribution<int> distribution_M0( Mtot,  M0/(M0+M1) );
+        //binomial_distribution<int> distribution_M1( 1,float(M1 - int(M1) ));
+        V_deme[m][0] = distribution_M0(e);
+        V_deme[m][1] = Mtot - V_deme[m][0];
+
+        //V_deme[m][1] = int(M1) + distribution_M1(e);
+
+    
 
 
         //absorption
 
-        //cout <<alpha*(V_deme[m][0]/ (V_deme[m][0]+V_deme[m][1]))<<endl;
-        //cout<<V_deme[m][0]<<endl;
 
         int Bempty =0;
         for (int n=0;n<K_bac;n++){
@@ -205,7 +215,7 @@ int main (int argc, char * argv[]){
 
         }
 
-        if ((V_deme[m][0]+V_deme[m][1]>0)&& (Bempty>0)){
+        if (((V_deme[m][0]+V_deme[m][1] )>0)&& (Bempty>0)){
             
             
 
@@ -222,6 +232,10 @@ int main (int argc, char * argv[]){
             binomial_distribution<int> distribution_1( atot,float(V_deme[m][0] / float(V_deme[m][0]+V_deme[m][1]) ) );
             int a0 = distribution_1(e);
             int a1 = atot-a0;
+            //a1  >0 when allele1 is empty
+            //cout<< V_deme[m][0]<<" "<<V_deme[m][1]<<" "<<V_deme[m][0] / (float( V_deme[m][0])+float(V_deme[m][1])) <<endl;
+
+            //cout<<M0/(M0+M1)<<" "<<a0<<" "<<a1<<" "<<atot<<endl;
 
            //cout<<a0<<endl;
             int Babs = 0;
@@ -340,11 +354,21 @@ int main (int argc, char * argv[]){
             aux_p1 =V_deme[m][1]; 
             float M0 = ((1-M)* V_deme[m][0] + (M/2)*V_deme[m+1][0] + (M/2)*hold0);
             float M1 = ((1-M)* V_deme[m][1] + (M/2)*V_deme[m+1][1] + (M/2)*hold1);
-            binomial_distribution<int> distribution_M0( 1,float(M0 - int(M0) ));
-            binomial_distribution<int> distribution_M1( 1,float(M1 - int(M1) ));
+            int Mtot = int(M0+M1);
+            binomial_distribution<int> distribution_M0( Mtot,  M0/(M0+M1) );
+            //binomial_distribution<int> distribution_M1( 1,float(M1 - int(M1) ));
 
-            V_deme[m][0] = int(M0) + distribution_M0(e);
-            V_deme[m][1] = int(M1) + distribution_M1(e);
+            V_deme[m][0] = distribution_M0(e);
+            V_deme[m][1] = Mtot -  V_deme[m][0];
+
+            //float M0 = ((1-M)* V_deme[m][0] + (M/2)*V_deme[m+1][0] + (M/2)*hold0);
+            //float M1 = ((1-M)* V_deme[m][1] + (M/2)*V_deme[m+1][1] + (M/2)*hold1);
+            //binomial_distribution<int> distribution_M0( 1,float(M0 - int(M0) ));
+            //binomial_distribution<int> distribution_M1( 1,float(M1 - int(M1) ));
+
+            //V_deme[m][0] = int(M0) + distribution_M0(e);
+            //V_deme[m][1] = int(M1) + distribution_M1(e);
+
             int Bempty =0;
             for (int n=0;n<K_bac;n++){
                 if (B_deme[m][n]==0){
@@ -621,6 +645,28 @@ int main (int argc, char * argv[]){
 
             
             }
+            cout<<endl;
+
+
+            for(int m=0;m<N_demes;m++){
+                //int total_deme=0;
+
+
+                cout<<V_deme[m][0] <<" ";
+
+            
+            }
+            cout<<endl;
+
+            for(int m=0;m<N_demes;m++){
+                //int total_deme=0;
+
+
+                cout<<V_deme[m][1] <<" ";
+
+            
+            }
+            cout<<endl;
 
             //reset bacteria
             for(int m=0; m< N_demes;m++){
