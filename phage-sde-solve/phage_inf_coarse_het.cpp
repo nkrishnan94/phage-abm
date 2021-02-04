@@ -25,7 +25,7 @@ float M = .25; // Migration rate
 int prof_hist =  0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,4); // Run time in generations
 int samp_id=0;
-float alpha = 0.005;
+float alpha = 0.03;
 unsigned int assign_gene_time = 5*pow(10,4); // Run time in generations
 //int mig_det_flag = 0;  // =1 binomial sampling done to ddetermine proportion from each allele migaratoin; =0, done determinisitally for total and each allele. 
 //int round_flag = 1; // =1, migration proportions are simply rounded down, otherwise binomieal sampling done to determine whether rounding occurs
@@ -74,6 +74,8 @@ int main (int argc, char * argv[]){
 
         if (c == 'b')
             beta = atof(optarg); // migration probability
+        else if (c=='a')
+            alpha = atof(optarg);
         else if (c == 't')
             tao = atof(optarg); // migration probability
         else if (c == 'i')
@@ -110,8 +112,8 @@ int main (int argc, char * argv[]){
     string profpName = "profile_phage_Nb" + strKb.str()  + "_migr" + strM.str()  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+ termination;
     string profbName = "profile_bac_Nb" + strKb.str()  + "_migr" + strM.str() +"+_tau"+strT.str()+"_alpha"+strA.str() +"_ID"+strI.str()+ termination;
     string logName = "log_Nb" + strKb.str()  + "_migr" + strM.str() + "_B"  +"+_tau"+strT.str()+"_alpha"+strA.str()+"_ID"+strI.str()+  termination;
-    //string folder = "het_data_sde/";
-    string folder = "";
+    string folder = "het_data_sde/";
+    //string folder = "";
     flog.open(folder+logName);
     fhet.open(folder+hetName);
     fpop.open(folder+velName);
@@ -175,7 +177,9 @@ int main (int argc, char * argv[]){
 
     //for (unsigned int t = 0; t < N_gen; t++){
     while((avgH>.0001)||(t<1.1*assign_gene_time) ){
+
         //cout<<"hi"<<endl;
+        //cout<< 199<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
         int m=0;
 
 
@@ -203,19 +207,21 @@ int main (int argc, char * argv[]){
 
         //absorption
 
-
+        //cout<< 199<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
         int Bempty =0;
         for (int n=0;n<K_bac;n++){
             if (B_deme[m][n]==0){
-                if(B_deme[m][n]==0){
-                    Bempty+=1;
-                }
+                //if(B_deme[m][n]==0){
+                Bempty+=1;
+                //}
  
             }
 
         }
+        //cout<< Bempty<<endl;
 
         if (((V_deme[m][0]+V_deme[m][1] )>0)&& (Bempty>0)){
+            //cout<< m<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
             
             
 
@@ -225,6 +231,7 @@ int main (int argc, char * argv[]){
             int atot = distribution_0(e);
 
             atot=min(atot,Bempty);
+            //cout<< Bempty<<endl;
 
 
 
@@ -238,31 +245,52 @@ int main (int argc, char * argv[]){
             //cout<<M0/(M0+M1)<<" "<<a0<<" "<<a1<<" "<<atot<<endl;
 
            //cout<<a0<<endl;
+            //cout<< 0<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
             int Babs = 0;
-            for (int n=(K_bac - Bempty-1);n<(K_bac - Bempty+a0);n++){
+            int n=0;
+            while((Babs< a0 )&&(n<K_bac)){
                 if (B_deme[m][n] ==0){
                     B_deme[m][n] = (1) * tao_count;
                     Babs+=1;
+                    //cout<< n<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
 
                 }
-            }
+                n+=1;
 
-            for (int n=(K_bac - Bempty+a0-1);n<(K_bac -Bempty+a0+a1);n++){
+
+            }
+            while((Babs< (a0+a1) )&&(n<K_bac)){
                 if (B_deme[m][n] ==0){
                     B_deme[m][n] = (2) * tao_count;
                     Babs+=1;
+                    //cout<< n<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
 
-                } 
+                }
+                n+=1;
+
+
             }
+
+
+
             if (Babs<(a0+a1)){
 
 
-                cout<<"Timestep: "<< t << " Deme: "<< m<<"Bempty: "<< Bempty<< " Bac. Index: " <<(a0+a1)<<endl;
+                cout<<"Timestep: "<< t << " Deme: "<< m<<"total bac. "<< K_bac<<" "<<"Infections done"<< Babs<<" "<<"Bempty: "<< Bempty<< " Bac. Index: " <<a0<<" +  "<<a1<<endl;
+                cout<<
                 cout <<"NO UNINFECTED BACTERIA AVAILABLE FOR ABSORPTION" <<t <<endl;
+                for (int n=0;n<K_bac;n++){
+                    //if (B_deme[m][n] ==0){
+                    cout<<n<<" "<<B_deme[m][n] <<endl;
+
+                }
                 exit(EXIT_FAILURE);
                 
             }
+            //cout<< 199<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
         }
+        //cout<< 199<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
+
 
 
         /*if (V_deme[m][0]+V_deme[m][1]>0){
@@ -345,6 +373,7 @@ int main (int argc, char * argv[]){
         }
         
         //subsequent demes
+        //cout<< 199<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
     
         for(int m=1;m<N_demes-2;m++){
             
@@ -360,6 +389,8 @@ int main (int argc, char * argv[]){
 
             V_deme[m][0] = distribution_M0(e);
             V_deme[m][1] = Mtot -  V_deme[m][0];
+
+            //cout <<m<<" "<<V_deme[m][0]<<" "<<V_deme[m][1]<<endl;
 
             //float M0 = ((1-M)* V_deme[m][0] + (M/2)*V_deme[m+1][0] + (M/2)*hold0);
             //float M1 = ((1-M)* V_deme[m][1] + (M/2)*V_deme[m+1][1] + (M/2)*hold1);
@@ -397,23 +428,29 @@ int main (int argc, char * argv[]){
 
                 //cout<<a0<<endl;
                 int Babs=0;
-
-                for (int n=(K_bac - Bempty-1);n<(K_bac -Bempty+a0);n++){
+                int n=0;
+                while((Babs< a0 )&&(n<K_bac)){
                     if (B_deme[m][n] ==0){
                         B_deme[m][n] = (1) * tao_count;
                         Babs+=1;
+                        //cout<< n<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
 
-                    } 
+                    }
+                    n+=1;
+
+
                 }
-
-                for (int n=(K_bac - Bempty+a0-1);n<(K_bac -Bempty+a0+a1);n++){
+                while((Babs< (a0+a1) )&&(n<K_bac)){
                     if (B_deme[m][n] ==0){
                         B_deme[m][n] = (2) * tao_count;
                         Babs+=1;
+                        //cout<< n<<" "<< V_deme[199][0]<<" "<<V_deme[199][1]<<endl;
 
-                    } 
+                    }
+                    n+=1;
+
+
                 }
-
                 if (Babs<(atot)){
 
 
@@ -426,6 +463,7 @@ int main (int argc, char * argv[]){
                     
                 }
             }
+
             /*if (V_deme[m][0]+V_deme[m][1]>0){
                 //cout<<V_deme[m][0]+V_deme[m][1]<<endl;
                 //absorption
@@ -506,6 +544,7 @@ int main (int argc, char * argv[]){
                 }
 
             }
+            //cout <<m<<" "<<V_deme[m][0]<<" "<<V_deme[m][1]<<endl;
 
 
 
@@ -519,8 +558,10 @@ int main (int argc, char * argv[]){
         int last_deme=0;
         for(int m=0;m<N_demes;m++){
 
+
             total_phage+=V_deme[m][0]+V_deme[m][1];
-            if (V_deme[m][0]+V_deme[m][1]>0){
+            //cout<< m<<" "<< V_deme[m][0]<<" "<<V_deme[m][1]<<endl;
+            if ((V_deme[m][0]+V_deme[m][1])>0){
                 last_deme=m;
 
 
@@ -535,6 +576,7 @@ int main (int argc, char * argv[]){
 
         
         }
+
         //cout<<tot_pop<<endl;
         //cout <<tot_pop<<endl;
 
@@ -542,12 +584,14 @@ int main (int argc, char * argv[]){
         int shift = 0;
         //if (last_deme >= N_demes*(3/4)){
         shift = last_deme-10-int(N_demes/2);
+        //cout<<last_deme<<" "<<shift<<endl;
             
         
         //cout<<last_deme<<endl;
 
 
         if (shift>0){
+            //cout<<last_deme<<" "<<shift<<endl;
             //cout<<shift<<endl;
             //shiftpop+= V_deme[s][0]+V_deme[s][1];
             for(int s =0;s<shift;s++){

@@ -71,6 +71,8 @@ int main (int argc, char * argv[]){
 
         if (c == 'b')
             beta = atof(optarg); // migration probability
+        else if (c=='a')
+            alpha =  atof(optarg);
         else if (c == 't')
             tao = atof(optarg); // migration probability
         else if (c == 'i')
@@ -179,17 +181,22 @@ int main (int argc, char * argv[]){
         int m=0;
         
 
-        //first deme
+ 
+        //first demem
         aux_p0 =V_deme[m][0]; 
         aux_p1 =V_deme[m][1]; 
         //cout<<V_deme[0][1]<<endl;
+
+        //float M0 =((1-M/2)* V_deme[m][0] + (M/2)*V_deme[m+1][0]);
+        //float M1 = ((1-M/2)* V_deme[m][1] + (M/2)*V_deme[m+1][1]);
         float M0 =((1-M/2)* V_deme[m][0] + (M/2)*V_deme[m+1][0]);
         float M1 = ((1-M/2)* V_deme[m][1] + (M/2)*V_deme[m+1][1]);
-        binomial_distribution<int> distribution_M0( 1,float(M0 - int(M0) ));
-        binomial_distribution<int> distribution_M1( 1,float(M1 - int(M1) ));
-        V_deme[m][0] = int(M0) + distribution_M0(e);
-        V_deme[m][1] = int(M1) + distribution_M1(e);
-
+        int Mtot = int(M0+M1);
+        //cout<<M0/(M0+M1) <<endl;
+        binomial_distribution<int> distribution_M0( Mtot,  M0/(M0+M1) );
+        //binomial_distribution<int> distribution_M1( 1,float(M1 - int(M1) ));
+        V_deme[m][0] = distribution_M0(e);
+        V_deme[m][1] = Mtot - V_deme[m][0];
         //absorption
 
         //cout <<alpha*(V_deme[m][0]/ (V_deme[m][0]+V_deme[m][1]))<<endl;
@@ -281,17 +288,21 @@ int main (int argc, char * argv[]){
         for(int m=1;m<N_demes-2;m++){
             
             
-            hold0 = aux_p0;
-            hold1 = aux_p1;
+
             aux_p0 =V_deme[m][0]; 
             aux_p1 =V_deme[m][1]; 
-            float M0 = ((1-M)* V_deme[m][0] + (M/2)*V_deme[m+1][0] + (M/2)*hold0);
-            float M1 = ((1-M)* V_deme[m][1] + (M/2)*V_deme[m+1][1] + (M/2)*hold1);
-            binomial_distribution<int> distribution_M0( 1,float(M0 - int(M0) ));
-            binomial_distribution<int> distribution_M1( 1,float(M1 - int(M1) ));
+            //cout<<V_deme[0][1]<<endl;
 
-            V_deme[m][0] = int(M0) + distribution_M0(e);
-            V_deme[m][1] = int(M1) + distribution_M1(e);
+            //float M0 =((1-M/2)* V_deme[m][0] + (M/2)*V_deme[m+1][0]);
+            //float M1 = ((1-M/2)* V_deme[m][1] + (M/2)*V_deme[m+1][1]);
+            float M0 =((1-M/2)* V_deme[m][0] + (M/2)*V_deme[m+1][0]);
+            float M1 = ((1-M/2)* V_deme[m][1] + (M/2)*V_deme[m+1][1]);
+            int Mtot = int(M0+M1);
+            //cout<<M0/(M0+M1) <<endl;
+            binomial_distribution<int> distribution_M0( Mtot,  M0/(M0+M1) );
+            //binomial_distribution<int> distribution_M1( 1,float(M1 - int(M1) ));
+            V_deme[m][0] = distribution_M0(e);
+            V_deme[m][1] = Mtot - V_deme[m][0];
             //cout <<alpha*(V_deme[m][0]/ (V_deme[m][0]+V_deme[m][1]))<<endl;
         //cout<<V_deme[m][0]<<endl;
 
