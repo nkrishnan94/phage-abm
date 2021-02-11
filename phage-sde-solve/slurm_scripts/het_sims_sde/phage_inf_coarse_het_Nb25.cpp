@@ -19,13 +19,13 @@ const int N_demes = 200; // number of demes in comiving frame
 //const int N_spec = 2; // number of 'species' including phage and bacteria
 const int K_bac=25; // deme size for bacteria
 const int K_vir = 100; // deme size for phage - >beta*K_bac*2
-float tao = 200; // lysis time in simulation steps
+float tao = 1200; // lysis time in simulation steps
 int beta = 50; //number of phage released with lysis
 float M = .25; // Migration rate
 int prof_hist =  0; // flag to keep track of history profile history through time, off by default
 unsigned int N_gen = 1*pow(10,4); // Run time in generations
 int samp_id=0;
-float alpha = 0.03;
+float alpha = 0.005;
 unsigned int assign_gene_time = 5*pow(10,4); // Run time in generations
 
 
@@ -35,6 +35,7 @@ float calcHet(long arr [N_demes][2]){
     long double H = 0.0;
     int deme_pop_a1;
     int deme_pop_a2;
+    float meanH;
 
     for(int m =0; m<N_demes;m++){
         deme_pop_a1=arr[m][0];
@@ -47,8 +48,17 @@ float calcHet(long arr [N_demes][2]){
 
 
     }
+    if (cnt>0){
+        meanH =float(H)/float(cnt);
 
-    return float(H)/float(cnt);
+    } else{
+
+        meanH =0;
+
+
+    }
+
+    return meanH;
 
 }
 
@@ -113,25 +123,43 @@ int main (int argc, char * argv[]){
     /// ---------------setup RNG-----------------
     mt19937 e(samp_id);
 
+    /*int record_time_het;
+
+    if (tao< 1201){
+
+        record_time_het=20; //recording interval for heteozygoisty after assigning
+    }
+
+    if (tao< 601){
+
+        record_time_het=10; //recording interval for heteozygoisty after assigning
+    }
+
+    if (tao< 301){
+
+        record_time_het=5; //recording interval for heteozygoisty after assigning
+    }*/
+
     ///------additional parameters
     long B_deme[N_demes][K_bac] = {{0}};// Keep track of Bacteria -> Healthy, infected, lysed
     long V_deme[N_demes][2] = {{0}};// //Keep track of N_spec species of phage
     long V_deme_aux[N_demes][2] = {{0}};
     double shiftDemes = 0; // Number of demes shifted
     int shiftpop=0; //initialize population shift. variable
-    int record_time_het=5; //recording interval for heteozygoisty after assigning
+    int record_time_het =5;
     int record_time_pop=5000;
     vector <double> pop_hist; //initalize vector for population
     vector <double> het_hist; //initialize vector for avg. heterozygoisty
     int total_phage = int(N_demes/2)*100; //initial value for total_phage
     int t=0; //initialized time variable
     float avgH;  //initialize variable for current
+    int Hext =0;
     long tao_count = pow(10,int(log10(tao) + 2)); //
     int aux_p0; /// save unmigrated allele 0 pop for next deme
     int aux_p1; //save unmigrated allele 1 pop for next deme
     int hold0; //holder for prev. deme unmigrated allele 0 pop
     int hold1; //holder for prev. deme unmigrated allele 0 pop
-    float H_thresh = 0.0001;
+    float H_thresh = 0;
     uniform_real_distribution<double> distribution_d(0.0, 1.0); // initialize uniform dist. for 0-1.
 
 
@@ -147,7 +175,7 @@ int main (int argc, char * argv[]){
 
 
     //---------main loop-----------
-    while((avgH>H_thresh)||(t<1.1*assign_gene_time) ){
+    while( (avgH>0) || (Hext<2*tao) || (t<1.1*assign_gene_time) ){
 
         //first deme
         int m=0;
@@ -431,7 +459,14 @@ int main (int argc, char * argv[]){
 
 
         if((t%record_time_het ==0)&&(t>assign_gene_time)){
+
             avgH =calcHet(V_deme);
+            if (avgH ==0){
+                Hext+=1*record_time_het;
+                //cout <<Hext<<endl;
+            } else{
+                Hext=0;
+            }
             cout << "Average Het. :" <<avgH<<endl;
             het_hist.push_back(avgH);
         }

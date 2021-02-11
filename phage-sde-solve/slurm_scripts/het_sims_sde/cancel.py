@@ -1,6 +1,6 @@
 import os
 import glob
-fs =glob.glob('*.log')[0]
+fs =glob.glob('submit*.log')[0]
 f = open(fs,'r')
 print('file: '+fs)
 lines = f.readlines()

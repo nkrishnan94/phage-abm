@@ -1,0 +1,58 @@
+date/time:
+2021-02-11 00:38:12.906771
+taus:
+[[  50  100  150  200]
+ [ 150  300  450  600]
+ [ 300  600  900 1200]]
+alphas:
+alphas
+Bacs.:
+Bs
+Tau: 50 Alpha: 0.03 Bac. in deme: 25
+Tau: 50 Alpha: 0.03 Bac. in deme: 50
+Tau: 50 Alpha: 0.03 Bac. in deme: 75
+Tau: 50 Alpha: 0.03 Bac. in deme: 100
+Tau: 100 Alpha: 0.03 Bac. in deme: 25
+Tau: 100 Alpha: 0.03 Bac. in deme: 50
+Tau: 100 Alpha: 0.03 Bac. in deme: 75
+Tau: 100 Alpha: 0.03 Bac. in deme: 100
+Tau: 150 Alpha: 0.03 Bac. in deme: 25
+Tau: 150 Alpha: 0.03 Bac. in deme: 50
+Tau: 150 Alpha: 0.03 Bac. in deme: 75
+Tau: 150 Alpha: 0.03 Bac. in deme: 100
+Tau: 200 Alpha: 0.03 Bac. in deme: 25
+Tau: 200 Alpha: 0.03 Bac. in deme: 50
+Tau: 200 Alpha: 0.03 Bac. in deme: 75
+Tau: 200 Alpha: 0.03 Bac. in deme: 100
+Tau: 150 Alpha: 0.01 Bac. in deme: 25
+Tau: 150 Alpha: 0.01 Bac. in deme: 50
+Tau: 150 Alpha: 0.01 Bac. in deme: 75
+Tau: 150 Alpha: 0.01 Bac. in deme: 100
+Tau: 300 Alpha: 0.01 Bac. in deme: 25
+Tau: 300 Alpha: 0.01 Bac. in deme: 50
+Tau: 300 Alpha: 0.01 Bac. in deme: 75
+Tau: 300 Alpha: 0.01 Bac. in deme: 100
+Tau: 450 Alpha: 0.01 Bac. in deme: 25
+Tau: 450 Alpha: 0.01 Bac. in deme: 50
+Tau: 450 Alpha: 0.01 Bac. in deme: 75
+Tau: 450 Alpha: 0.01 Bac. in deme: 100
+Tau: 600 Alpha: 0.01 Bac. in deme: 25
+Tau: 600 Alpha: 0.01 Bac. in deme: 50
+Tau: 600 Alpha: 0.01 Bac. in deme: 75
+Tau: 600 Alpha: 0.01 Bac. in deme: 100
+Tau: 300 Alpha: 0.005 Bac. in deme: 25
+Tau: 300 Alpha: 0.005 Bac. in deme: 50
+Tau: 300 Alpha: 0.005 Bac. in deme: 75
+Tau: 300 Alpha: 0.005 Bac. in deme: 100
+Tau: 600 Alpha: 0.005 Bac. in deme: 25
+Tau: 600 Alpha: 0.005 Bac. in deme: 50
+Tau: 600 Alpha: 0.005 Bac. in deme: 75
+Tau: 600 Alpha: 0.005 Bac. in deme: 100
+Tau: 900 Alpha: 0.005 Bac. in deme: 25
+Tau: 900 Alpha: 0.005 Bac. in deme: 50
+Tau: 900 Alpha: 0.005 Bac. in deme: 75
+Tau: 900 Alpha: 0.005 Bac. in deme: 100
+Tau: 1200 Alpha: 0.005 Bac. in deme: 25
+Tau: 1200 Alpha: 0.005 Bac. in deme: 50
+Tau: 1200 Alpha: 0.005 Bac. in deme: 75
+Tau: 1200 Alpha: 0.005 Bac. in deme: 100
